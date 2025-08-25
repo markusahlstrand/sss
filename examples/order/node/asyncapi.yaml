@@ -1,0 +1,124 @@
+asyncapi: 2.6.0
+info:
+  title: Orders Events
+  version: 1.0.0
+  description: Event specifications for the Orders Service
+channels:
+  order.created:
+    description: Published when a new order is created
+    publish:
+      message:
+        $ref: "#/components/messages/OrderCreated"
+  order.updated:
+    description: Published when an order status is updated
+    publish:
+      message:
+        $ref: "#/components/messages/OrderUpdated"
+components:
+  messages:
+    OrderCreated:
+      name: OrderCreated
+      title: Order Created Event
+      summary: Event published when a new order is created
+      contentType: application/cloudevents+json
+      payload:
+        type: object
+        properties:
+          specversion:
+            type: string
+            const: "1.0"
+          type:
+            type: string
+            const: "order.created"
+          source:
+            type: string
+            const: "orders-service"
+          id:
+            type: string
+            description: Unique identifier for the event
+          time:
+            type: string
+            format: date-time
+          datacontenttype:
+            type: string
+            const: "application/json"
+          data:
+            type: object
+            properties:
+              id:
+                type: string
+                description: Order ID
+              customerId:
+                type: string
+                description: Customer ID
+              items:
+                type: array
+                items:
+                  type: string
+                description: List of item IDs
+              status:
+                type: string
+                enum: [pending]
+                description: Order status (always pending for created events)
+              createdAt:
+                type: string
+                format: date-time
+        required:
+          - specversion
+          - type
+          - source
+          - id
+          - time
+          - datacontenttype
+          - data
+    OrderUpdated:
+      name: OrderUpdated
+      title: Order Updated Event
+      summary: Event published when an order status is updated
+      contentType: application/cloudevents+json
+      payload:
+        type: object
+        properties:
+          specversion:
+            type: string
+            const: "1.0"
+          type:
+            type: string
+            const: "order.updated"
+          source:
+            type: string
+            const: "orders-service"
+          id:
+            type: string
+            description: Unique identifier for the event
+          time:
+            type: string
+            format: date-time
+          datacontenttype:
+            type: string
+            const: "application/json"
+          data:
+            type: object
+            properties:
+              id:
+                type: string
+                description: Order ID
+              status:
+                type: string
+                enum: [pending, paid, shipped, delivered]
+                description: New order status
+              previousStatus:
+                type: string
+                enum: [pending, paid, shipped, delivered]
+                description: Previous order status
+              updatedAt:
+                type: string
+                format: date-time
+        required:
+          - specversion
+          - type
+          - source
+          - id
+          - time
+          - datacontenttype
+          - data
