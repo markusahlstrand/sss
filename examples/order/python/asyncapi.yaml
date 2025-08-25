@@ -1,0 +1,67 @@
+asyncapi: 2.6.0
+info:
+  title: Orders Events
+  version: 1.0.0
+  description: Event specifications for the Orders Service
+channels:
+  order.created:
+    description: Published when a new order is created
+    publish:
+      message:
+        $ref: "#/components/messages/OrderCreated"
+  order.updated:
+    description: Published when an order status is updated
+    publish:
+      message:
+        $ref: "#/components/messages/OrderUpdated"
+components:
+  messages:
+    OrderCreated:
+      name: OrderCreated
+      title: Order Created Event
+      summary: A new order has been created
+      contentType: application/cloudevents+json
+      payload:
+        $ref: "#/components/schemas/OrderCreatedPayload"
+    OrderUpdated:
+      name: OrderUpdated
+      title: Order Updated Event
+      summary: An order status has been updated
+      contentType: application/cloudevents+json
+      payload:
+        $ref: "#/components/schemas/OrderUpdatedPayload"
+  schemas:
+    OrderCreatedPayload:
+      type: object
+      required: [id, customerId, items, status]
+      properties:
+        id:
+          type: string
+          description: Unique order identifier
+        customerId:
+          type: string
+          description: ID of the customer who placed the order
+        items:
+          type: array
+          items:
+            type: string
+          description: List of item IDs in the order
+        status:
+          type: string
+          enum: [pending]
+          description: Initial status of the order
+    OrderUpdatedPayload:
+      type: object
+      required: [id, status]
+      properties:
+        id:
+          type: string
+          description: Unique order identifier
+        status:
+          type: string
+          enum: [pending, paid, shipped, delivered]
+          description: New status of the order
+        previousStatus:
+          type: string
+          enum: [pending, paid, shipped, delivered]
+          description: Previous status of the order

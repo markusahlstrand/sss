@@ -149,6 +149,22 @@ examples/[service]/[language]/
 - Don't hardcode values - use environment variables for all configuration
 - Don't skip error types - all 6 RFC 7807 error types are mandatory
 
+#### Python-Specific Pitfalls
+
+- **Python Version Compatibility** - Use Python 3.12 for best package compatibility
+  - Python 3.13 may cause pydantic-core compilation issues
+  - Always create virtual environment with consistent Python version
+- **Import Structure** - Use absolute imports in main.py for direct execution
+  - Add `sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))` for relative imports
+- **Virtual Environment Issues** - Mixed Python versions cause import failures
+  - If getting "ModuleNotFoundError" despite pip showing packages installed
+  - Check `which python` vs `which pip` point to same environment
+  - Recreate venv if Python versions don't match
+- **Package Installation** - Use `pip install --only-binary=:all:` for compilation issues
+- **FastAPI Structure** - Leverage dependency injection for auth and validation
+  - Use Pydantic models for automatic OpenAPI generation
+  - Implement RFC 7807 error handlers as FastAPI exception handlers
+
 #### Rust-Specific Pitfalls
 
 - **Cargo features** - Always specify needed features (e.g., `serde = ["derive"]`)
@@ -211,6 +227,41 @@ async-trait = "0.1"
 once_cell = "1.19"
 ```
 
+### Quick Dependencies (requirements.txt for Python)
+
+```txt
+# Core FastAPI dependencies
+fastapi>=0.104.1,<0.112.0
+uvicorn[standard]>=0.24.0,<0.31.0
+pydantic>=2.5.0,<3.0.0
+python-multipart>=0.0.6,<0.1.0
+
+# Authentication
+python-jose[cryptography]>=3.3.0,<4.0.0
+
+# Logging
+structlog>=23.2.0,<25.0.0
+
+# OpenTelemetry
+opentelemetry-api>=1.21.0,<2.0.0
+opentelemetry-sdk>=1.21.0,<2.0.0
+opentelemetry-instrumentation-fastapi>=0.42b0,<1.0.0
+opentelemetry-instrumentation-logging>=0.42b0,<1.0.0
+opentelemetry-exporter-jaeger-thrift>=1.21.0,<2.0.0
+
+# Events
+cloudevents>=1.10.1,<2.0.0
+
+# Configuration
+python-dotenv>=1.0.0,<2.0.0
+PyYAML>=6.0,<7.0.0
+
+# Testing
+pytest>=7.4.3,<9.0.0
+pytest-asyncio>=0.21.1,<1.0.0
+httpx>=0.25.2,<1.0.0
+```
+
 ### Service Manifest Template
 
 ```yaml
@@ -248,11 +299,23 @@ After generation, always:
    - Rust: `target/` directory, compiled binaries (`.exe`, `.dll`, `.so`, `.dylib`)
    - Go: compiled binaries, `vendor/` (if using)
    - Java: `target/`, `*.class`, `*.jar` (build artifacts)
-   - Python: `__pycache__/`, `*.pyc`, `.env`, `venv/`
-2. Run `npm install && npm run build` (or language equivalent) to verify
+   - Python: `__pycache__/`, `*.pyc`, `.env`, `.venv/`, `venv/`
+2. Run `npm install && npm run build` (or language equivalent) to verify:
+   - Python: `pip install -r requirements.txt && python -c "from src.main import app; print('✅ Success')"`
 3. Create simple test script or examples
 4. Document any technology-specific considerations
 5. Suggest next steps for productionization (database, message broker, etc.)
+
+### Recent Success: Python FastAPI Implementation ✅
+
+The Python FastAPI implementation (August 2025) was successfully generated and is fully operational:
+
+- **Full Service Standard v1 compliance** achieved
+- **Key challenge resolved**: Mixed Python environment (3.12 vs 3.13) causing import failures
+- **Solution**: Recreated virtual environment with consistent Python version
+- **Import fix**: Used absolute imports with sys.path manipulation for direct script execution
+- **All endpoints working**: Authentication, error handling, events, health checks
+- **Production ready**: Docker setup, comprehensive tests, structured logging
 
 ---
 

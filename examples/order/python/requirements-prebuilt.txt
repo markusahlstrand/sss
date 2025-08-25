@@ -1,0 +1,33 @@
+# Alternative requirements with pre-built wheels
+# Use this if you're having compilation issues
+
+# Core FastAPI dependencies - using versions with good wheel availability
+fastapi==0.110.0
+uvicorn[standard]==0.29.0
+pydantic==2.6.4
+python-multipart==0.0.9
+
+# Authentication
+python-jose[cryptography]==3.3.0
+
+# Logging
+structlog==24.1.0
+
+# OpenTelemetry - using more recent stable versions
+opentelemetry-api==1.24.0
+opentelemetry-sdk==1.24.0
+opentelemetry-instrumentation-fastapi==0.45b0
+opentelemetry-instrumentation-logging==0.45b0
+opentelemetry-exporter-jaeger-thrift==1.24.0
+
+# Events
+cloudevents==1.10.1
+
+# Configuration
+python-dotenv==1.0.1
+PyYAML==6.0.1
+
+# Testing
+pytest==8.1.1
+pytest-asyncio==0.23.6
+httpx==0.27.0

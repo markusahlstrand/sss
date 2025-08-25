@@ -1,0 +1,322 @@
+openapi: 3.0.3
+info:
+  title: Orders API
+  version: 1.0.0
+  description: Orders Service - Service Standard v1 compliant
+servers:
+  - url: http://localhost:8000
+    description: Development server
+paths:
+  /:
+    get:
+      summary: Service information
+      operationId: getServiceInfo
+      responses:
+        "200":
+          description: Service metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceInfo"
+  /openapi.json:
+    get:
+      summary: OpenAPI specification
+      operationId: getOpenAPI
+      responses:
+        "200":
+          description: OpenAPI specification as JSON
+          content:
+            application/json:
+              schema:
+                type: object
+  /healthz:
+    get:
+      summary: Liveness probe
+      operationId: healthzCheck
+      responses:
+        "200":
+          description: Service is alive
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /readyz:
+    get:
+      summary: Readiness probe
+      operationId: readyzCheck
+      responses:
+        "200":
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /orders:
+    get:
+      summary: List orders
+      operationId: listOrders
+      security:
+        - bearerAuth: [orders.read]
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        "200":
+          description: List of orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Order"
+                  total:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      summary: Create a new order
+      operationId: createOrder
+      security:
+        - bearerAuth: [orders.write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderCreate"
+      responses:
+        "201":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /orders/{id}:
+    get:
+      summary: Get order by ID
+      operationId: getOrder
+      security:
+        - bearerAuth: [orders.read]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Order details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      summary: Update order status
+      operationId: updateOrder
+      security:
+        - bearerAuth: [orders.write]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderUpdate"
+      responses:
+        "200":
+          description: Order updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ServiceInfo:
+      type: object
+      required: [name, version]
+      properties:
+        name:
+          type: string
+          example: orders
+        version:
+          type: string
+          example: 1.0.0
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+    OrderCreate:
+      type: object
+      required: [customerId, items]
+      properties:
+        customerId:
+          type: string
+          description: ID of the customer placing the order
+        items:
+          type: array
+          items:
+            type: string
+          minItems: 1
+          description: List of item IDs in the order
+    OrderUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [pending, paid, shipped, delivered]
+          description: New status of the order
+    Order:
+      type: object
+      required: [id, status, customerId, items]
+      properties:
+        id:
+          type: string
+          description: Unique order identifier
+        status:
+          type: string
+          enum: [pending, paid, shipped, delivered]
+          description: Current status of the order
+        customerId:
+          type: string
+          description: ID of the customer who placed the order
+        items:
+          type: array
+          items:
+            type: string
+          description: List of item IDs in the order
+    ProblemDetails:
+      type: object
+      required: [type, title, status]
+      properties:
+        type:
+          type: string
+          description: A URI reference that identifies the problem type
+        title:
+          type: string
+          description: A short, human-readable summary of the problem type
+        status:
+          type: integer
+          description: The HTTP status code
+        detail:
+          type: string
+          description: A human-readable explanation specific to this occurrence of the problem
+        instance:
+          type: string
+          description: A URI reference that identifies the specific occurrence of the problem
+  responses:
+    ValidationError:
+      description: Validation Error
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+          example:
+            type: validation_error
+            title: Validation Error
+            status: 400
+            detail: "customerId should not be empty, items must contain at least 1 elements"
+            instance: /orders
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+          example:
+            type: unauthorized
+            title: Unauthorized
+            status: 401
+            detail: Missing or invalid authorization token
+            instance: /orders
+    Forbidden:
+      description: Forbidden
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+          example:
+            type: forbidden
+            title: Forbidden
+            status: 403
+            detail: Insufficient permissions to access this resource
+            instance: /orders
+    NotFound:
+      description: Not Found
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+          example:
+            type: not_found
+            title: Not Found
+            status: 404
+            detail: The requested order was not found
+            instance: /orders/123
+    Conflict:
+      description: Conflict
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+          example:
+            type: conflict
+            title: Conflict
+            status: 409
+            detail: Cannot update order status from delivered to pending
+            instance: /orders/123

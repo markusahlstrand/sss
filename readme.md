@@ -188,14 +188,15 @@ Service Standard v1 has been successfully implemented across multiple languages 
 | **Rust**    | Axum        | ⭐⭐⭐⭐   | ⭐⭐⭐     | ⭐⭐⭐⭐   | ⭐⭐⭐⭐⭐    | Medium |
 | **Go**      | Gin/Chi     | ⭐⭐⭐⭐   | ⭐⭐⭐⭐   | ⭐⭐⭐⭐   | ⭐⭐⭐⭐⭐    | Low    |
 | **Java**    | Spring Boot | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐   | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐    | Medium |
-| **Python**  | FastAPI     | ⭐⭐⭐⭐⭐ | ⭐⭐⭐     | ⭐⭐⭐⭐   | ⭐⭐⭐⭐      | Low    |
+| **Python**  | FastAPI     | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐   | ⭐⭐⭐⭐   | ⭐⭐⭐⭐      | Low    |
 
 ### Key Learnings
 
 #### What Works Well
 
+- **Automatic API generation** (FastAPI, NestJS) from type annotations provides excellent DX
 - **Compile-time API generation** (Rust utoipa, Java OpenAPI) catches inconsistencies early
-- **Decorator/annotation patterns** (NestJS, Spring) provide clean, declarative APIs
+- **Decorator/annotation patterns** (NestJS, Spring, FastAPI) provide clean, declarative APIs
 - **Middleware architectures** enable clean separation of cross-cutting concerns
 - **Type-safe validation** prevents runtime errors and improves developer experience
 - **Structured logging** with OpenTelemetry provides excellent observability
@@ -208,12 +209,17 @@ Service Standard v1 has been successfully implemented across multiple languages 
   - Java/Spring: Good with dedicated libraries
 - **JWT middleware complexity** requires framework-specific solutions
 
-  - Some frameworks have excellent OAuth2 integration (NestJS, Spring)
+  - Some frameworks have excellent OAuth2 integration (NestJS, Spring, FastAPI)
   - Others need custom middleware (Rust/Axum, Go)
 
 - **Error handling standardization** across languages
+
   - Problem+JSON implementation varies in complexity
-  - Type systems help (Rust, TypeScript) vs. runtime validation
+  - Type systems help (Rust, TypeScript, Python with Pydantic) vs. runtime validation
+
+- **Python version compatibility** can cause package compilation issues
+  - Python 3.13 is very new - use 3.12 for best compatibility
+  - Mixed virtual environments (different Python versions) cause import failures
 
 #### Performance Characteristics
 
@@ -221,6 +227,7 @@ Service Standard v1 has been successfully implemented across multiple languages 
 - **Node.js**: Good performance, excellent ecosystem, fast development
 - **Go**: Fast compilation, good performance, simple deployment
 - **Java**: Mature ecosystem, excellent tooling, higher memory usage
+- **Python**: Good development speed, moderate performance, excellent for data-heavy services
 
 ---
 
