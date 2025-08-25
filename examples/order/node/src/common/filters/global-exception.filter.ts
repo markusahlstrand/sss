@@ -34,14 +34,31 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
       switch (status) {
         case HttpStatus.BAD_REQUEST:
+          let detail = "Invalid input";
+
+          // Handle validation pipe errors which contain detailed validation information
+          if (typeof exceptionResponse === "object" && exceptionResponse) {
+            const response = exceptionResponse as any;
+            if (response.message && Array.isArray(response.message)) {
+              // NestJS ValidationPipe returns an array of validation error messages
+              detail = response.message.join(", ");
+            } else if (
+              response.message &&
+              typeof response.message === "string"
+            ) {
+              detail = response.message;
+            } else if (response.error && typeof response.error === "string") {
+              detail = response.error;
+            }
+          } else if (typeof exceptionResponse === "string") {
+            detail = exceptionResponse;
+          }
+
           problemDetails = {
             type: "validation_error",
             title: "Validation Error",
             status,
-            detail:
-              typeof exceptionResponse === "string"
-                ? exceptionResponse
-                : "Invalid input",
+            detail,
             instance: request.url,
           };
           break;

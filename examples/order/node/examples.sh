@@ -17,34 +17,39 @@ curl -X GET "$API_BASE/" | jq
 echo
 echo
 
-echo "2. Health Check (no authentication required)"
+echo "2. OpenAPI JSON Specification (no authentication required)"
+curl -X GET "$API_BASE/openapi.json" | jq '.info'
+echo
+echo
+
+echo "3. Health Check (no authentication required)"
 curl -X GET "$API_BASE/healthz" | jq
 echo
 echo
 
-echo "3. Readiness Check (no authentication required)"
+echo "4. Readiness Check (no authentication required)"
 curl -X GET "$API_BASE/readyz" | jq
 echo
 echo
 
-echo "4. Create Order (requires JWT token with 'orders.write' scope)"
+echo "5. Create Order (requires JWT token with 'orders.write' scope)"
 echo "curl -X POST $API_BASE/orders \\"
 echo '  -H "Authorization: Bearer YOUR_JWT_TOKEN" \'
 echo '  -H "Content-Type: application/json" \'
 echo '  -d '\''{"customerId": "customer-123", "items": ["item-1", "item-2"]}'\'''
 echo
 
-echo "5. Get Orders (requires JWT token with 'orders.read' scope)"
+echo "6. Get Orders (requires JWT token with 'orders.read' scope)"
 echo "curl -X GET $API_BASE/orders?limit=10&offset=0 \\"
 echo '  -H "Authorization: Bearer YOUR_JWT_TOKEN"'
 echo
 
-echo "6. Get Order by ID (requires JWT token with 'orders.read' scope)"
+echo "7. Get Order by ID (requires JWT token with 'orders.read' scope)"
 echo "curl -X GET $API_BASE/orders/ORDER_ID \\"
 echo '  -H "Authorization: Bearer YOUR_JWT_TOKEN"'
 echo
 
-echo "7. Update Order Status (requires JWT token with 'orders.write' scope)"
+echo "8. Update Order Status (requires JWT token with 'orders.write' scope)"
 echo "curl -X PATCH $API_BASE/orders/ORDER_ID \\"
 echo '  -H "Authorization: Bearer YOUR_JWT_TOKEN" \'
 echo '  -H "Content-Type: application/json" \'
@@ -53,6 +58,7 @@ echo
 
 echo "=== API Documentation ==="
 echo "Visit http://localhost:3000/api-docs for Swagger documentation"
+echo "Visit http://localhost:3000/openapi.json for OpenAPI JSON specification"
 echo
 
 echo "=== Service Contracts ==="

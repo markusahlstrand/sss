@@ -1,0 +1,126 @@
+asyncapi: 2.6.0
+info:
+  title: Orders Events
+  version: 1.0.0
+  description: Events published by the Orders service
+channels:
+  order.created:
+    description: Published when a new order is created
+    publish:
+      message:
+        $ref: "#/components/messages/OrderCreated"
+  order.updated:
+    description: Published when an order status is updated
+    publish:
+      message:
+        $ref: "#/components/messages/OrderUpdated"
+components:
+  messages:
+    OrderCreated:
+      name: OrderCreated
+      title: Order Created
+      contentType: application/cloudevents+json
+      payload:
+        type: object
+        properties:
+          specversion:
+            type: string
+            const: "1.0"
+          type:
+            type: string
+            const: "order.created"
+          source:
+            type: string
+            const: "orders-service"
+          id:
+            type: string
+            format: uuid
+          time:
+            type: string
+            format: date-time
+          data:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+                description: Order ID
+              customer_id:
+                type: string
+                description: Customer ID who placed the order
+              items:
+                type: array
+                items:
+                  type: string
+                description: List of items in the order
+              status:
+                type: string
+                enum: [pending, paid, shipped, delivered]
+                description: Current order status
+              created_at:
+                type: string
+                format: date-time
+                description: When the order was created
+            required:
+              - id
+              - customer_id
+              - items
+              - status
+              - created_at
+        required:
+          - specversion
+          - type
+          - source
+          - id
+          - data
+    OrderUpdated:
+      name: OrderUpdated
+      title: Order Updated
+      contentType: application/cloudevents+json
+      payload:
+        type: object
+        properties:
+          specversion:
+            type: string
+            const: "1.0"
+          type:
+            type: string
+            const: "order.updated"
+          source:
+            type: string
+            const: "orders-service"
+          id:
+            type: string
+            format: uuid
+          time:
+            type: string
+            format: date-time
+          data:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+                description: Order ID
+              customer_id:
+                type: string
+                description: Customer ID who placed the order
+              status:
+                type: string
+                enum: [pending, paid, shipped, delivered]
+                description: Updated order status
+              updated_at:
+                type: string
+                format: date-time
+                description: When the order was last updated
+            required:
+              - id
+              - customer_id
+              - status
+              - updated_at
+        required:
+          - specversion
+          - type
+          - source
+          - id
+          - data

@@ -35,6 +35,7 @@ Every generated service MUST include:
 - [ ] Pagination with `limit` + `offset`
 - [ ] JSON Schema for all requests/responses
 - [ ] Service info endpoint (`GET /`) returning `{"name": "service-name", "version": "1.0.0"}`
+- [ ] OpenAPI JSON endpoint (`GET /openapi.json`) exposing the API specification
 
 #### 2. Authentication
 
@@ -109,6 +110,7 @@ examples/[service]/[language]/
 - Add OpenTelemetry auto-instrumentation
 - Create scope-based guards and decorators
 - Global validation pipes with `class-validator`
+- Expose OpenAPI JSON via `app.getHttpAdapter().get('/openapi.json', (req, res) => res.send(document))`
 
 #### Error Handling
 
@@ -147,6 +149,15 @@ examples/[service]/[language]/
 - Don't hardcode values - use environment variables for all configuration
 - Don't skip error types - all 6 RFC 7807 error types are mandatory
 
+#### Rust-Specific Pitfalls
+
+- **Cargo features** - Always specify needed features (e.g., `serde = ["derive"]`)
+- **CloudEvents** - Native crates have compatibility issues, implement custom structs
+- **Swagger UI** - utoipa-swagger-ui has integration challenges, serve OpenAPI JSON directly
+- **Error conversion** - Implement proper `From` traits for error type conversion
+- **Shared state** - Use `Arc<T>` and `RwLock<T>` instead of fighting borrowing rules
+- **Middleware integration** - Custom Tower middleware needed for complex auth scenarios
+
 ## File Templates
 
 ### Quick Dependencies (package.json)
@@ -171,6 +182,33 @@ examples/[service]/[language]/
     "@opentelemetry/sdk-node": "^0.43.0"
   }
 }
+```
+
+### Quick Dependencies (Cargo.toml for Rust)
+
+```toml
+[dependencies]
+axum = { version = "0.7", features = ["macros"] }
+tokio = { version = "1.0", features = ["full"] }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["cors", "trace", "request-id"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["json", "env-filter"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+uuid = { version = "1.0", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+anyhow = "1.0"
+thiserror = "1.0"
+jsonwebtoken = "9.0"
+utoipa = { version = "4.0", features = ["axum_extras", "chrono", "uuid"] }
+opentelemetry = "0.23"
+opentelemetry_sdk = { version = "0.23", features = ["rt-tokio"] }
+opentelemetry-jaeger = { version = "0.22", features = ["rt-tokio"] }
+tracing-opentelemetry = "0.24"
+validator = { version = "0.18", features = ["derive"] }
+async-trait = "0.1"
+once_cell = "1.19"
 ```
 
 ### Service Manifest Template
@@ -205,10 +243,16 @@ A successful generation includes:
 
 After generation, always:
 
-1. Run `npm install && npm run build` to verify
-2. Create simple test script or examples
-3. Document any technology-specific considerations
-4. Suggest next steps for productionization (database, message broker, etc.)
+1. **Add appropriate .gitignore entries** - Ensure language-specific build artifacts are excluded:
+   - Node.js: `node_modules/`, `dist/`, `.env` files
+   - Rust: `target/` directory, compiled binaries (`.exe`, `.dll`, `.so`, `.dylib`)
+   - Go: compiled binaries, `vendor/` (if using)
+   - Java: `target/`, `*.class`, `*.jar` (build artifacts)
+   - Python: `__pycache__/`, `*.pyc`, `.env`, `venv/`
+2. Run `npm install && npm run build` (or language equivalent) to verify
+3. Create simple test script or examples
+4. Document any technology-specific considerations
+5. Suggest next steps for productionization (database, message broker, etc.)
 
 ---
 

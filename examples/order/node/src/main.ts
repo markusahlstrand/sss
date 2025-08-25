@@ -71,6 +71,12 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("api-docs", app, document);
 
+  // Expose OpenAPI JSON at /openapi.json
+  app.getHttpAdapter().get("/openapi.json", (req, res) => {
+    res.setHeader("Content-Type", "application/json");
+    res.send(document);
+  });
+
   // Add tracing context to requests
   app.use((req, res, next) => {
     const span = trace.getActiveSpan();

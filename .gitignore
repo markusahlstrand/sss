@@ -182,3 +182,16 @@ auto-generated/
 *.db
 *.sqlite
 *.sqlite3
+
+# Rust
+target/
+*/target/
+**/target/
+*.pdb
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Note: Cargo.lock should be committed for applications, ignored for libraries
+# Since our examples are applications, we keep Cargo.lock

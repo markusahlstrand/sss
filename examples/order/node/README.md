@@ -16,9 +16,12 @@ A NestJS implementation of the Orders Service that complies with **Service Stand
 ## API Endpoints
 
 ### Service Info
+
 - `GET /` - Get service information (no authentication required)
+- `GET /openapi.json` - Get OpenAPI specification as JSON (no authentication required)
 
 ### Orders
+
 - `POST /orders` - Create a new order (requires `orders.write` scope)
 - `GET /orders` - List orders with pagination (requires `orders.read` scope)
 - `GET /orders/{id}` - Get order by ID (requires `orders.read` scope)

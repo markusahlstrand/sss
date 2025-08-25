@@ -12,6 +12,7 @@ This NestJS implementation fully complies with the **Service Standard v1** as de
 - **Pagination**: `limit` + `offset` parameters
 - **JSON Schema**: All request/response schemas defined
 - **Service Info Endpoint**: Root endpoint (`GET /`) returns service name and version
+- **OpenAPI JSON Endpoint**: OpenAPI specification exposed at `GET /openapi.json`
 
 ### 2. ✅ Authentication
 

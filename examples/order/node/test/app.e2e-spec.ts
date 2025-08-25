@@ -63,6 +63,20 @@ describe("Orders API (e2e)", () => {
           expect(res.body.version).toBe("1.0.0");
         });
     });
+
+    it("/openapi.json (GET) - should return OpenAPI specification", () => {
+      return request(app.getHttpServer())
+        .get("/openapi.json")
+        .expect(200)
+        .expect("Content-Type", /application\/json/)
+        .expect((res) => {
+          expect(res.body.openapi).toBeDefined();
+          expect(res.body.info).toBeDefined();
+          expect(res.body.info.title).toBe("Orders API");
+          expect(res.body.info.version).toBe("1.0.0");
+          expect(res.body.paths).toBeDefined();
+        });
+    });
   });
 
   describe("Health Endpoints", () => {

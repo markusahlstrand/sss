@@ -1,0 +1,9 @@
+name: orders
+version: 1.0.0
+owner: team-orders
+api: ./openapi.yaml
+events: ./asyncapi.yaml
+auth:
+  required_scopes:
+    - orders.read
+    - orders.write
