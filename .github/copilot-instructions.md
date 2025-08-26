@@ -149,6 +149,27 @@ examples/[service]/[language]/
 - Don't hardcode values - use environment variables for all configuration
 - Don't skip error types - all 6 RFC 7807 error types are mandatory
 
+#### .NET-Specific Pitfalls
+
+- **Framework Version Compatibility** - Use .NET 9.0 for latest features but adjust based on available SDK
+  - Check `dotnet --version` and adjust `<TargetFramework>` in .csproj accordingly
+  - Update package references to match framework version (e.g., Microsoft.AspNetCore.\* packages)
+- **CloudEvents Package Issues** - CloudNative.CloudEvents.AspNetCore has compatibility issues
+  - Use simple custom CloudEvents implementation with JSON serialization instead
+  - Avoids version conflicts and provides better control over event structure
+- **JWT Token Generation** - Integrate token generation into Program.cs main method
+  - Handle command-line arguments for `--generate-tokens` and `--generate-token --scopes`
+  - Use conditional compilation with Environment.Exit(0) for token-only execution
+- **Package Reference Versions** - ASP.NET Core package versions must align with framework
+  - Microsoft.AspNetCore.\* packages should match .NET version (8.0.x for net8.0, 9.0.x for net9.0)
+  - Serilog and OpenTelemetry packages are more version-agnostic
+- **Global Exception Handling** - Use middleware pattern instead of filters
+  - Implement custom middleware class in Common/ folder
+  - Register with `app.UseMiddleware<GlobalExceptionMiddleware>()`
+- **Swagger Integration** - Use `ISwaggerProvider` from `Swashbuckle.AspNetCore.Swagger`
+  - Add to using statements and inject into minimal API endpoints
+  - Configure both Swagger UI and JSON endpoint for OpenAPI specification
+
 #### Python-Specific Pitfalls
 
 - **Python Version Compatibility** - Use Python 3.12 for best package compatibility
@@ -198,6 +219,31 @@ examples/[service]/[language]/
     "@opentelemetry/sdk-node": "^0.43.0"
   }
 }
+```
+
+### Quick Dependencies (.csproj for .NET)
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.2" />
+    <PackageReference Include="Serilog.Formatting.Compact" Version="3.0.0" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.9.0" />
+    <PackageReference Include="OpenTelemetry.Exporter.Jaeger" Version="1.5.1" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="9.0.8" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.2" />
+  </ItemGroup>
+</Project>
 ```
 
 ### Quick Dependencies (Cargo.toml for Rust)
@@ -296,17 +342,34 @@ After generation, always:
 
 1. **Add appropriate .gitignore entries** - Ensure language-specific build artifacts are excluded:
    - Node.js: `node_modules/`, `dist/`, `.env` files
+   - .NET: `bin/`, `obj/`, `*.dll`, `*.exe`, `*.pdb`, `*.user`, `*.suo`, `.vs/`
    - Rust: `target/` directory, compiled binaries (`.exe`, `.dll`, `.so`, `.dylib`)
    - Go: compiled binaries, `vendor/` (if using)
    - Java: `target/`, `*.class`, `*.jar` (build artifacts)
    - Python: `__pycache__/`, `*.pyc`, `.env`, `.venv/`, `venv/`
 2. Run `npm install && npm run build` (or language equivalent) to verify:
+   - .NET: `dotnet build && dotnet run -- --generate-tokens`
    - Python: `pip install -r requirements.txt && python -c "from src.main import app; print('✅ Success')"`
 3. Create simple test script or examples
 4. Document any technology-specific considerations
 5. Suggest next steps for productionization (database, message broker, etc.)
 
-### Recent Success: Python FastAPI Implementation ✅
+### Recent Successes
+
+#### .NET ASP.NET Core Implementation ✅
+
+The .NET ASP.NET Core implementation (August 2025) was successfully generated and is fully operational:
+
+- **Full Service Standard v1 compliance** achieved with excellent developer experience
+- **Key strength**: Strong type safety with compile-time validation catches errors early
+- **CloudEvents solution**: Custom implementation works better than CloudNative.CloudEvents package
+- **JWT integration**: Built-in ASP.NET Core authentication provides excellent OAuth2/JWT support
+- **Architecture success**: Clean domain-driven structure with middleware pipeline for cross-cutting concerns
+- **Performance**: Fast startup, efficient memory usage, excellent scalability
+- **All endpoints working**: Authentication, error handling, events, health checks, Swagger UI
+- **Production ready**: Docker setup, comprehensive documentation, structured logging with OpenTelemetry
+
+#### Python FastAPI Implementation ✅
 
 The Python FastAPI implementation (August 2025) was successfully generated and is fully operational:
 

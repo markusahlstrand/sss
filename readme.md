@@ -182,13 +182,14 @@ Service Standard v1 has been successfully implemented across multiple languages 
 
 ### Language Maturity for SSv1
 
-| Language    | Framework   | OpenAPI    | Events     | Auth       | Observability | Effort |
-| ----------- | ----------- | ---------- | ---------- | ---------- | ------------- | ------ |
-| **Node.js** | NestJS      | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐    | Low    |
-| **Rust**    | Axum        | ⭐⭐⭐⭐   | ⭐⭐⭐     | ⭐⭐⭐⭐   | ⭐⭐⭐⭐⭐    | Medium |
-| **Go**      | Gin/Chi     | ⭐⭐⭐⭐   | ⭐⭐⭐⭐   | ⭐⭐⭐⭐   | ⭐⭐⭐⭐⭐    | Low    |
-| **Java**    | Spring Boot | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐   | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐    | Medium |
-| **Python**  | FastAPI     | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐   | ⭐⭐⭐⭐   | ⭐⭐⭐⭐      | Low    |
+| Language    | Framework    | OpenAPI    | Events     | Auth       | Observability | Effort |
+| ----------- | ------------ | ---------- | ---------- | ---------- | ------------- | ------ |
+| **Node.js** | NestJS       | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐    | Low    |
+| **.NET**    | ASP.NET Core | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐   | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐    | Low    |
+| **Rust**    | Axum         | ⭐⭐⭐⭐   | ⭐⭐⭐     | ⭐⭐⭐⭐   | ⭐⭐⭐⭐⭐    | Medium |
+| **Go**      | Gin/Chi      | ⭐⭐⭐⭐   | ⭐⭐⭐⭐   | ⭐⭐⭐⭐   | ⭐⭐⭐⭐⭐    | Low    |
+| **Java**    | Spring Boot  | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐   | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐    | Medium |
+| **Python**  | FastAPI      | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐   | ⭐⭐⭐⭐   | ⭐⭐⭐⭐      | Low    |
 
 ### Key Learnings
 
@@ -205,25 +206,28 @@ Service Standard v1 has been successfully implemented across multiple languages 
 
 - **CloudEvents integration** varies significantly across ecosystems
   - Node.js: Excellent native support
+  - .NET: Simple custom implementation works well, CloudNative.CloudEvents has compatibility issues
   - Rust: Custom implementation needed due to crate compatibility
   - Java/Spring: Good with dedicated libraries
 - **JWT middleware complexity** requires framework-specific solutions
 
-  - Some frameworks have excellent OAuth2 integration (NestJS, Spring, FastAPI)
+  - Some frameworks have excellent OAuth2 integration (NestJS, Spring, FastAPI, ASP.NET Core)
   - Others need custom middleware (Rust/Axum, Go)
 
 - **Error handling standardization** across languages
 
   - Problem+JSON implementation varies in complexity
-  - Type systems help (Rust, TypeScript, Python with Pydantic) vs. runtime validation
+  - Type systems help (Rust, TypeScript, C#, Python with Pydantic) vs. runtime validation
 
-- **Python version compatibility** can cause package compilation issues
+- **Version targeting considerations**
   - Python 3.13 is very new - use 3.12 for best compatibility
+  - .NET: Target latest available SDK version (adjust framework target as needed)
   - Mixed virtual environments (different Python versions) cause import failures
 
 #### Performance Characteristics
 
 - **Rust**: Fastest startup, lowest memory, highest throughput
+- **.NET**: Excellent performance, fast startup, efficient memory usage, strong typing
 - **Node.js**: Good performance, excellent ecosystem, fast development
 - **Go**: Fast compilation, good performance, simple deployment
 - **Java**: Mature ecosystem, excellent tooling, higher memory usage

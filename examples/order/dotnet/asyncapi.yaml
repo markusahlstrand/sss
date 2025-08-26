@@ -1,0 +1,118 @@
+asyncapi: 2.6.0
+info:
+  title: Orders Events
+  version: 1.0.0
+  description: Order Management Service Events following Service Standard v1
+
+channels:
+  order.created:
+    description: Published when a new order is created
+    publish:
+      operationId: publishOrderCreated
+      message:
+        $ref: "#/components/messages/OrderCreated"
+
+  order.updated:
+    description: Published when an order status is updated
+    publish:
+      operationId: publishOrderUpdated
+      message:
+        $ref: "#/components/messages/OrderUpdated"
+
+components:
+  messages:
+    OrderCreated:
+      contentType: application/cloudevents+json
+      description: Event published when a new order is created
+      payload:
+        type: object
+        required: [specversion, type, source, id, time, datacontenttype, data]
+        properties:
+          specversion:
+            type: string
+            example: "1.0"
+          type:
+            type: string
+            example: "order.created"
+          source:
+            type: string
+            example: "https://orders-service/events"
+          id:
+            type: string
+            example: "event-123"
+          time:
+            type: string
+            format: date-time
+            example: "2025-08-26T10:30:00Z"
+          datacontenttype:
+            type: string
+            example: "application/json"
+          subject:
+            type: string
+            example: "order.created"
+          data:
+            type: object
+            required: [id, customerId, items, status]
+            properties:
+              id:
+                type: string
+                description: Order ID
+                example: "order-123"
+              customerId:
+                type: string
+                description: Customer ID
+                example: "customer-123"
+              items:
+                type: array
+                items:
+                  type: string
+                description: Order items
+                example: ["item-1", "item-2"]
+              status:
+                type: string
+                enum: [pending]
+                description: Initial order status
+                example: "pending"
+
+    OrderUpdated:
+      contentType: application/cloudevents+json
+      description: Event published when an order status is updated
+      payload:
+        type: object
+        required: [specversion, type, source, id, time, datacontenttype, data]
+        properties:
+          specversion:
+            type: string
+            example: "1.0"
+          type:
+            type: string
+            example: "order.updated"
+          source:
+            type: string
+            example: "https://orders-service/events"
+          id:
+            type: string
+            example: "event-456"
+          time:
+            type: string
+            format: date-time
+            example: "2025-08-26T10:35:00Z"
+          datacontenttype:
+            type: string
+            example: "application/json"
+          subject:
+            type: string
+            example: "order.updated"
+          data:
+            type: object
+            required: [id, status]
+            properties:
+              id:
+                type: string
+                description: Order ID
+                example: "order-123"
+              status:
+                type: string
+                enum: [pending, paid, shipped, delivered]
+                description: Updated order status
+                example: "paid"
