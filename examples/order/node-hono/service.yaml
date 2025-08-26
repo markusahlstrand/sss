@@ -1,0 +1,53 @@
+name: orders
+version: 1.0.0
+owner: team-orders
+description: Orders service implementation using Hono + Zod OpenAPI
+api: ./openapi.yaml
+events: ./asyncapi.yaml
+auth:
+  required_scopes:
+    - orders.read
+    - orders.write
+  token_type: JWT
+  bearer_format: JWT
+endpoints:
+  - path: /
+    method: GET
+    description: Service information
+    auth_required: false
+  - path: /healthz
+    method: GET
+    description: Liveness probe
+    auth_required: false
+  - path: /readyz
+    method: GET  
+    description: Readiness probe
+    auth_required: false
+  - path: /openapi.json
+    method: GET
+    description: OpenAPI specification
+    auth_required: false
+  - path: /docs
+    method: GET
+    description: Swagger UI documentation
+    auth_required: false
+  - path: /orders
+    method: GET
+    description: List orders
+    auth_required: true
+    scopes: [orders.read]
+  - path: /orders
+    method: POST
+    description: Create order
+    auth_required: true
+    scopes: [orders.write]
+  - path: /orders/{id}
+    method: GET
+    description: Get order by ID
+    auth_required: true
+    scopes: [orders.read]
+  - path: /orders/{id}
+    method: PATCH
+    description: Update order status
+    auth_required: true
+    scopes: [orders.write]

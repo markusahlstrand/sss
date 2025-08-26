@@ -149,6 +149,28 @@ examples/[service]/[language]/
 - Don't hardcode values - use environment variables for all configuration
 - Don't skip error types - all 6 RFC 7807 error types are mandatory
 
+#### Node.js-Specific Pitfalls
+
+- **Hono Version Compatibility** - Use Hono v4+ for latest ecosystem compatibility
+  - Hono v4 required for `@hono/node-server` v1.19+, `@hono/zod-openapi` v0.17+
+  - JWT middleware is built into Hono core - no need for separate `@hono/jwt` package
+  - Update `@hono/swagger-ui` to v0.4+ for Hono v4 compatibility
+- **Package Version Alignment** - CloudEvents and OpenTelemetry package versions matter
+  - Use `cloudevents@^8.0.0` for Node.js 20+ support (v6 has Node version restrictions)
+  - OpenTelemetry packages should be aligned: use latest v1.x versions consistently
+- **Schema-First Development** - Leverage Zod for both validation AND OpenAPI generation
+  - Define schemas first, then build routes around them for best type inference
+  - Use `z.infer<>` for automatic TypeScript type generation from schemas
+  - Transform functions in schemas (`.transform()`) provide data conversion and validation
+- **Middleware Composition** - Hono middleware order matters for authentication flow
+  - Apply `cors()` and logging middleware globally first
+  - Apply `jwt()` authentication middleware before route-specific authorization
+  - Use `requireScopes()` middleware after JWT validation for fine-grained access control
+- **Error Handling Pattern** - Centralized error handler for consistent RFC 7807 responses
+  - Handle `ZodError` specifically for validation errors with detailed field messages
+  - Handle `HTTPException` for structured error responses with proper status codes
+  - Use `createMiddleware()` pattern for reusable authorization logic
+
 #### .NET-Specific Pitfalls
 
 - **Framework Version Compatibility** - Use .NET 9.0 for latest features but adjust based on available SDK
@@ -217,6 +239,29 @@ examples/[service]/[language]/
     "@opentelemetry/api": "^1.6.0",
     "@opentelemetry/auto-instrumentations-node": "^0.39.4",
     "@opentelemetry/sdk-node": "^0.43.0"
+  }
+}
+```
+
+### Quick Dependencies (package.json for Hono + Zod)
+
+```json
+{
+  "dependencies": {
+    "hono": "^4.0.0",
+    "@hono/zod-openapi": "^0.17.0",
+    "@hono/swagger-ui": "^0.4.0",
+    "@hono/node-server": "^1.19.0",
+    "zod": "^3.22.4",
+    "jsonwebtoken": "^9.0.2",
+    "@opentelemetry/api": "^1.6.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.39.4",
+    "@opentelemetry/sdk-node": "^0.43.0",
+    "@opentelemetry/resources": "^1.18.0",
+    "@opentelemetry/semantic-conventions": "^1.18.0",
+    "winston": "^3.10.0",
+    "cloudevents": "^8.0.0",
+    "uuid": "^9.0.1"
   }
 }
 ```
@@ -368,6 +413,18 @@ The .NET ASP.NET Core implementation (August 2025) was successfully generated an
 - **Performance**: Fast startup, efficient memory usage, excellent scalability
 - **All endpoints working**: Authentication, error handling, events, health checks, Swagger UI
 - **Production ready**: Docker setup, comprehensive documentation, structured logging with OpenTelemetry
+
+#### Node.js Hono + Zod OpenAPI Implementation ✅
+
+The Node.js Hono + Zod OpenAPI implementation (August 2025) was successfully generated and is fully operational:
+
+- **Full Service Standard v1 compliance** achieved with modern edge-ready architecture
+- **Key innovation**: Schema-first development with automatic OpenAPI generation and full TypeScript inference
+- **Performance excellence**: Ultra-fast with minimal bundle size, optimized for serverless/edge deployment
+- **Package compatibility**: Hono v4+ required for latest `@hono/node-server` compatibility, JWT middleware built into core
+- **Developer experience**: Exceptional type safety, sub-second builds, comprehensive tooling
+- **All endpoints working**: Authentication, error handling, events, health checks, interactive documentation
+- **Production ready**: Docker setup, edge deployment ready, comprehensive observability
 
 #### Python FastAPI Implementation ✅
 
