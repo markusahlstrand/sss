@@ -440,3 +440,13 @@ The Python FastAPI implementation (August 2025) was successfully generated and i
 ---
 
 _This file should be updated with learnings from each service generation session to improve future AI assistance._
+
+#### Drizzle SQLite Database Integration (August 2025) ✅
+
+- **Node.js v23 compatibility**: Use @libsql/client instead of better-sqlite3 for modern Node.js versions to avoid native build issues.
+- **Repository pattern**: Maintain a clean separation between API (Zod) schemas and database (Drizzle) schemas for maintainability and type safety.
+- **TypeScript strictness**: Hono's strict type inference may require explicit type assertions when bridging API and DB layers.
+- **Health checks**: Integrate database connectivity into readiness/liveness endpoints for robust production deployments.
+- **Zero-config deployment**: SQLite's file-based approach is ideal for containerized and stateless services.
+- **Migration management**: drizzle-kit enables version-controlled schema evolution; distributed SQLite (Turso) may need custom migration handling.
+- **Performance**: Compile-time query building and connection pooling provide excellent efficiency for microservices.

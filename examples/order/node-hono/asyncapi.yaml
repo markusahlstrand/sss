@@ -6,7 +6,7 @@ info:
   contact:
     name: Team Orders
     email: team-orders@example.com
-  
+
 servers:
   development:
     url: http://localhost:9092
@@ -18,21 +18,21 @@ servers:
     description: Production Kafka broker
 
 channels:
-  'orders.order.created':
+  "orders.order.created":
     description: Channel for order created events
     publish:
       summary: Order created
       description: Published when a new order is created
       message:
-        $ref: '#/components/messages/OrderCreated'
-        
-  'orders.order.updated':
+        $ref: "#/components/messages/OrderCreated"
+
+  "orders.order.updated":
     description: Channel for order updated events
     publish:
       summary: Order updated
       description: Published when an order status is updated
       message:
-        $ref: '#/components/messages/OrderUpdated'
+        $ref: "#/components/messages/OrderUpdated"
 
 components:
   messages:
@@ -42,9 +42,9 @@ components:
       summary: An order has been created
       contentType: application/cloudevents+json
       traits:
-        - $ref: '#/components/messageTraits/CloudEvent'
+        - $ref: "#/components/messageTraits/CloudEvent"
       payload:
-        $ref: '#/components/schemas/OrderCreatedPayload'
+        $ref: "#/components/schemas/OrderCreatedPayload"
       examples:
         - name: Example order created
           summary: Example of an order created event
@@ -71,9 +71,9 @@ components:
       summary: An order status has been updated
       contentType: application/cloudevents+json
       traits:
-        - $ref: '#/components/messageTraits/CloudEvent'
+        - $ref: "#/components/messageTraits/CloudEvent"
       payload:
-        $ref: '#/components/schemas/OrderUpdatedPayload'
+        $ref: "#/components/schemas/OrderUpdatedPayload"
       examples:
         - name: Example order updated
           summary: Example of an order updated event
@@ -174,7 +174,7 @@ components:
             items:
               type: array
               items:
-                $ref: '#/components/schemas/OrderItem'
+                $ref: "#/components/schemas/OrderItem"
               description: Order items
             totalAmount:
               type: number

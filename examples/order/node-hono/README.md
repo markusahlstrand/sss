@@ -8,6 +8,7 @@ A **Service Standard v1** compliant Orders service built with **Hono**, **Zod Op
 - **Ultra-fast**: Built with Hono for edge-ready performance
 - **Type-safe**: Full TypeScript with Zod schema validation
 - **Auto-generated OpenAPI**: Automatic API documentation from schemas
+- **Drizzle + SQLite Database**: Type-safe database layer with migrations
 - **JWT Authentication**: OAuth2/OIDC bearer token support with scope-based authorization
 - **RFC 7807 Error Handling**: Standardized problem+json error responses
 - **CloudEvents**: Structured event publishing for order lifecycle
@@ -18,20 +19,27 @@ A **Service Standard v1** compliant Orders service built with **Hono**, **Zod Op
 
 ```
 src/
+├── db/
+│   ├── index.ts          # Database connection and health checks
+│   ├── schema.ts         # Drizzle schema definitions
+│   ├── repository.ts     # Data access layer with transactions
+│   ├── migrate.ts        # Migration runner script
+│   ├── seed.ts           # Database seeding script
+│   └── migrations/       # Generated migration files
 ├── middleware/
 │   ├── auth.ts           # JWT authentication & scope validation
 │   ├── error-handler.ts  # RFC 7807 error handling
 │   └── logger.ts         # Structured logging with trace context
 ├── routes/
-│   ├── health.ts         # Health check endpoints
+│   ├── health.ts         # Health check endpoints (includes DB health)
 │   └── orders.ts         # Orders CRUD operations
 ├── schemas/
 │   └── index.ts          # Zod schemas for validation & OpenAPI
 ├── services/
 │   ├── events.ts         # CloudEvents publishing
-│   └── orders.ts         # Business logic
+│   └── orders.ts         # Business logic with database integration
 ├── app.ts                # Hono app configuration
-├── index.ts              # Server entry point
+├── index.ts              # Server entry point with DB initialization
 ├── telemetry.ts          # OpenTelemetry setup
 └── generate-test-token.ts # JWT token generator for testing
 ```
@@ -48,6 +56,29 @@ src/
 ```bash
 npm install
 ```
+
+### Database Setup
+
+The service uses **Drizzle ORM** with **SQLite** (via libsql) for data persistence. Database initialization happens automatically on startup.
+
+> **⚠️ Integration Status**: The database integration is currently being finalized. The basic structure is in place, but some type alignments between the database layer and API schemas need to be resolved.
+
+```bash
+# Database operations (when fully integrated)
+npm run db:generate    # Generate new migration (after schema changes)
+npm run db:studio      # Open Drizzle Studio (database GUI)
+npm run db:seed        # Seed database with test data
+```
+
+**Database Location**: `./data/orders.db`
+
+**Current Implementation**:
+
+- ✅ Database schema defined (`src/db/schema.ts`)
+- ✅ Repository layer with transactions (`src/db/repository.ts`)
+- ✅ Database health checks integrated
+- ⚠️ Type alignment between API and database schemas (in progress)
+- ⚠️ Order service integration (in progress)
 
 ### Development
 
@@ -82,6 +113,7 @@ npm run generate-token
 ```
 
 This creates tokens with different scopes:
+
 - `orders.read` - Read access to orders
 - `orders.write` - Create and update orders
 
@@ -163,6 +195,7 @@ The service provides structured JSON logs with:
 ### Distributed Tracing
 
 OpenTelemetry integration provides:
+
 - Request tracing across service boundaries
 - Automatic HTTP instrumentation
 - W3C Trace Context propagation
@@ -245,6 +278,7 @@ docker-compose up -d
 ```
 
 This starts:
+
 - Orders service on port 3000
 - Jaeger UI on port 16686
 - Prometheus on port 9090
@@ -276,13 +310,13 @@ npm run lint
 
 ## 📝 Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `PORT` | Server port | `3000` |
-| `NODE_ENV` | Environment | `development` |
-| `JWT_SECRET` | JWT signing secret | `your-secret-key` |
-| `OTEL_SERVICE_NAME` | Service name for tracing | `orders-service` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | OTLP collector endpoint | - |
+| Variable                      | Description              | Default           |
+| ----------------------------- | ------------------------ | ----------------- |
+| `PORT`                        | Server port              | `3000`            |
+| `NODE_ENV`                    | Environment              | `development`     |
+| `JWT_SECRET`                  | JWT signing secret       | `your-secret-key` |
+| `OTEL_SERVICE_NAME`           | Service name for tracing | `orders-service`  |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | OTLP collector endpoint  | -                 |
 
 ## 🔧 Service Configuration
 
@@ -303,7 +337,7 @@ auth:
 ## 📚 Documentation
 
 - **OpenAPI Spec**: Available at `/openapi.json` and in `openapi.yaml`
-- **AsyncAPI Spec**: Event schemas in `asyncapi.yaml`  
+- **AsyncAPI Spec**: Event schemas in `asyncapi.yaml`
 - **Swagger UI**: Interactive docs at `/docs`
 - **Service Manifest**: Configuration in `service.yaml`
 
@@ -319,8 +353,9 @@ npm start
 ### Edge Runtimes
 
 The service works on:
+
 - **Cloudflare Workers**
-- **Vercel Edge Functions**  
+- **Vercel Edge Functions**
 - **Deno Deploy**
 - **Bun**
 
@@ -341,7 +376,7 @@ The service works on:
 ✅ **Health checks** with `/healthz` and `/readyz`  
 ✅ **JSON Schema** validation for all requests/responses  
 ✅ **Service manifest** with `service.yaml`  
-✅ **Structured logging** with trace correlation  
+✅ **Structured logging** with trace correlation
 
 ## 📄 License
 

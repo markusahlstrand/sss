@@ -13,9 +13,7 @@ export class OrdersService {
     const ordersWithItems = await this.orderRepository.findAll(limit, offset);
 
     // Convert database format to API format
-    const result = ordersWithItems.map((order) =>
-      this.convertToApiFormat(order)
-    );
+    const result = ordersWithItems.map(this.convertToApiFormat.bind(this));
 
     logger.info("Retrieved orders", {
       count: result.length,
@@ -99,6 +97,8 @@ export class OrdersService {
       id: orderWithItems.id,
       customerId: orderWithItems.customerId,
       items: orderWithItems.items.map((item) => ({
+        id: item.id,
+        orderId: item.orderId,
         productId: item.productId,
         quantity: item.quantity,
         price: item.price,

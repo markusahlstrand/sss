@@ -5,11 +5,18 @@ Node.js provides excellent support for Service Standard v1 requirements with mul
 ## 📑 Quick Navigation
 
 **Router Implementation Guides:**
+
 - **[NestJS Guide](./routers/nestjs.md)** - Enterprise framework with decorators and DI
-- **[Fastify Guide](./routers/fastify.md)** - High-performance JSON schema validation  
+- **[Fastify Guide](./routers/fastify.md)** - High-performance JSON schema validation
 - **[Hono + Zod Guide](./routers/hono-zod-openapi.md)** - Modern edge-first with type safety
 
+**Database Integration:**
+
+- **[Database Options](./databases/)** - Type-safe database layers with Drizzle, Prisma, and more
+- **[Drizzle + SQLite](./databases/drizzle-sqlite.md)** - Zero-config file database with full type safety
+
 **Example Implementations:**
+
 - **[NestJS Orders Service](../../examples/order/node-nest/)** - Complete working example
 - **[Hono + Zod Orders Service](../../examples/order/node-hono/)** - Edge-ready implementation
 
@@ -200,6 +207,7 @@ Regardless of router choice, all implementations must include:
 The Hono + Zod OpenAPI implementation was successfully generated and is fully operational:
 
 **Key Strengths:**
+
 - **Excellent type safety**: Full TypeScript inference from Zod schemas to API handlers
 - **Automatic OpenAPI generation**: Schemas directly generate accurate API documentation
 - **Edge-ready performance**: Ultra-fast with minimal bundle size for serverless deployment
@@ -207,6 +215,7 @@ The Hono + Zod OpenAPI implementation was successfully generated and is fully op
 - **Service Standard v1 compliance**: All requirements met with clean, maintainable code
 
 **Technical Highlights:**
+
 - **Version compatibility**: Hono v4 required for latest `@hono/node-server` compatibility
 - **JWT integration**: Built-in `jwt()` middleware from Hono core (no separate `@hono/jwt` package needed)
 - **Schema-driven**: Zod schemas provide both validation and automatic OpenAPI generation
@@ -214,18 +223,30 @@ The Hono + Zod OpenAPI implementation was successfully generated and is fully op
 - **CloudEvents**: Simple integration with structured event publishing
 
 **Development Experience:**
+
 - **Fast build times**: TypeScript compilation and hot reload are very fast
 - **Excellent IDE support**: Full IntelliSense and type checking throughout
 - **Easy testing**: Built-in test client and comprehensive examples script
 - **Clear documentation**: Auto-generated OpenAPI docs are accurate and complete
 
 **Performance Characteristics:**
+
 - **Cold start optimized**: Minimal dependencies and fast initialization
 - **Memory efficient**: Low memory footprint ideal for serverless functions
 - **Edge deployment ready**: Works seamlessly on Cloudflare Workers, Vercel Edge
 - **Scalable**: Stateless design enables easy horizontal scaling
 
 ## Next Steps
+
+## Learnings from Drizzle SQLite Integration (August 2025)
+
+- **Modern driver selection**: @libsql/client is recommended for Node.js v23+ due to better compatibility and no native build issues.
+- **Repository pattern**: Clean separation between API (Zod) and DB (Drizzle) schemas improves maintainability and type safety.
+- **TypeScript strictness**: Hono's strict type inference may require explicit type assertions when bridging API and DB layers.
+- **Health checks**: Integrate database connectivity into readiness/liveness endpoints for robust production deployments.
+- **Zero-config deployment**: SQLite's file-based approach is ideal for containerized and stateless services.
+- **Migration management**: drizzle-kit enables version-controlled schema evolution; distributed SQLite (Turso) may need custom migration handling.
+- **Performance**: Compile-time query building and connection pooling provide excellent efficiency for microservices.
 
 1. **Review the specific router documentation** for implementation details
 2. **Check the `/examples/` folder** for complete working implementations

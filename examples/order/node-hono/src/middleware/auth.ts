@@ -1,6 +1,6 @@
-import { createMiddleware } from 'hono/factory';
-import { jwt } from 'hono/jwt';
-import { HTTPException } from 'hono/http-exception';
+import { createMiddleware } from "hono/factory";
+import { jwt } from "hono/jwt";
+import { HTTPException } from "hono/http-exception";
 
 interface JWTPayload {
   sub: string;
@@ -8,7 +8,7 @@ interface JWTPayload {
 }
 
 export const authMiddleware = jwt({
-  secret: process.env.JWT_SECRET || 'your-secret-key',
+  secret: process.env.JWT_SECRET || "your-secret-key",
 });
 
 export const requireScopes = (requiredScopes: string[]) => {
@@ -17,14 +17,14 @@ export const requireScopes = (requiredScopes: string[]) => {
       jwtPayload: JWTPayload;
     };
   }>(async (c, next) => {
-    const payload = c.get('jwtPayload') as JWTPayload;
-    
+    const payload = c.get("jwtPayload") as JWTPayload;
+
     if (!payload) {
       const problem = {
-        type: 'unauthorized',
-        title: 'Unauthorized',
+        type: "unauthorized",
+        title: "Unauthorized",
         status: 401,
-        detail: 'JWT payload not found',
+        detail: "JWT payload not found",
         instance: c.req.path,
       };
 
@@ -40,10 +40,12 @@ export const requireScopes = (requiredScopes: string[]) => {
 
     if (!hasRequiredScope) {
       const problem = {
-        type: 'forbidden',
-        title: 'Forbidden',
+        type: "forbidden",
+        title: "Forbidden",
         status: 403,
-        detail: `Required scopes: ${requiredScopes.join(', ')}. User has: ${userScopes.join(', ')}`,
+        detail: `Required scopes: ${requiredScopes.join(
+          ", "
+        )}. User has: ${userScopes.join(", ")}`,
         instance: c.req.path,
       };
 

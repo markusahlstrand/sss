@@ -28,31 +28,44 @@ This document provides detailed implementation notes for the Orders service buil
 ### ✅ API Requirements
 
 **OpenAPI 3.0+ Specification**
+
 - Generated automatically from Zod schemas via `@hono/zod-openapi`
 - Available at `/openapi.json` endpoint
 - Interactive docs via Swagger UI at `/docs`
 
 **Service Information Endpoint**
+
 ```typescript
-app.get('/', (c) => {
-  return c.json({ name: 'orders-service', version: '1.0.0' });
+app.get("/", (c) => {
+  return c.json({ name: "orders-service", version: "1.0.0" });
 });
 ```
 
 **Content Type**
+
 - All endpoints use `application/json` content type
 - Error responses use `application/problem+json`
 
 **Resource-Oriented Paths**
+
 - `/orders` - Collection operations
 - `/orders/{id}` - Individual resource operations
 
 **Pagination**
+
 ```typescript
 const PaginationSchema = z.object({
-  limit: z.string().optional().default('10')
-    .transform((val: string) => Math.max(1, Math.min(100, parseInt(val, 10) || 10))),
-  offset: z.string().optional().default('0')
+  limit: z
+    .string()
+    .optional()
+    .default("10")
+    .transform((val: string) =>
+      Math.max(1, Math.min(100, parseInt(val, 10) || 10))
+    ),
+  offset: z
+    .string()
+    .optional()
+    .default("0")
     .transform((val: string) => Math.max(0, parseInt(val, 10) || 0)),
 });
 ```
@@ -60,17 +73,19 @@ const PaginationSchema = z.object({
 ### ✅ Authentication & Authorization
 
 **JWT Bearer Tokens**
+
 ```typescript
 export const authMiddleware = jwt({
-  secret: process.env.JWT_SECRET || 'your-secret-key',
+  secret: process.env.JWT_SECRET || "your-secret-key",
 });
 ```
 
 **Scope-Based Authorization**
+
 ```typescript
 export const requireScopes = (requiredScopes: string[]) => {
   return createMiddleware(async (c, next) => {
-    const payload = c.get('jwtPayload') as JWTPayload;
+    const payload = c.get("jwtPayload") as JWTPayload;
     const userScopes = payload.scopes || [];
     const hasRequiredScope = requiredScopes.some((scope) =>
       userScopes.includes(scope)
@@ -81,27 +96,31 @@ export const requireScopes = (requiredScopes: string[]) => {
 ```
 
 **Required Scopes**
+
 - `orders.read` - GET operations
 - `orders.write` - POST, PATCH operations
 
 ### ✅ Error Handling (RFC 7807)
 
 **Problem+JSON Format**
+
 ```typescript
 const problem = {
-  type: 'validation_error',
-  title: 'Validation Error',
+  type: "validation_error",
+  title: "Validation Error",
   status: 400,
-  detail: 'customerId should not be empty, items must contain at least 1 elements',
+  detail:
+    "customerId should not be empty, items must contain at least 1 elements",
   instance: c.req.path,
 };
 
 return c.json(problem, 400, {
-  'Content-Type': 'application/problem+json',
+  "Content-Type": "application/problem+json",
 });
 ```
 
 **Required Error Types**
+
 - `validation_error` (400) - Request validation failures
 - `unauthorized` (401) - Missing or invalid authentication
 - `forbidden` (403) - Insufficient permissions
@@ -112,52 +131,59 @@ return c.json(problem, 400, {
 ### ✅ Events (CloudEvents)
 
 **Event Publishing**
+
 ```typescript
 const event = new CloudEvent({
-  type: 'order.created',
-  source: 'orders-service',
+  type: "order.created",
+  source: "orders-service",
   id: crypto.randomUUID(),
   time: new Date().toISOString(),
-  datacontenttype: 'application/json',
-  specversion: '1.0',
-  data: { /* order data */ },
+  datacontenttype: "application/json",
+  specversion: "1.0",
+  data: {
+    /* order data */
+  },
 });
 ```
 
 **Event Types**
+
 - `order.created` - New order placed
 - `order.updated` - Order status changed
 
 ### ✅ Health & Lifecycle
 
 **Health Endpoints**
+
 ```typescript
 app.openapi(livenessRoute, (c) => {
-  return c.json({ status: 'ok' }); // /healthz
+  return c.json({ status: "ok" }); // /healthz
 });
 
 app.openapi(readinessRoute, (c) => {
-  return c.json({ status: 'ready' }); // /readyz
+  return c.json({ status: "ready" }); // /readyz
 });
 ```
 
 **Environment Configuration**
 All configuration via environment variables:
+
 - `PORT` - Server port
-- `JWT_SECRET` - JWT signing secret  
+- `JWT_SECRET` - JWT signing secret
 - `OTEL_SERVICE_NAME` - Service name for tracing
 
 ### ✅ Logging & Observability
 
 **Structured JSON Logging**
+
 ```typescript
-logger.info('Order created', {
+logger.info("Order created", {
   timestamp: new Date().toISOString(),
-  level: 'info',
-  service: 'orders-service',
+  level: "info",
+  service: "orders-service",
   trace_id: traceId,
   span_id: spanId,
-  message: 'Order created',
+  message: "Order created",
   orderId: order.id,
   customerId: order.customerId,
   totalAmount: order.totalAmount,
@@ -165,14 +191,15 @@ logger.info('Order created', {
 ```
 
 **OpenTelemetry Integration**
+
 ```typescript
-import { NodeSDK } from '@opentelemetry/sdk-node';
-import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
+import { NodeSDK } from "@opentelemetry/sdk-node";
+import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
 
 const sdk = new NodeSDK({
   resource: new Resource({
-    [SemanticResourceAttributes.SERVICE_NAME]: 'orders-service',
-    [SemanticResourceAttributes.SERVICE_VERSION]: '1.0.0',
+    [SemanticResourceAttributes.SERVICE_NAME]: "orders-service",
+    [SemanticResourceAttributes.SERVICE_VERSION]: "1.0.0",
   }),
   instrumentations: [getNodeAutoInstrumentations()],
 });
@@ -183,6 +210,7 @@ const sdk = new NodeSDK({
 ### Schema Validation with Zod
 
 **Input Validation**
+
 ```typescript
 export const CreateOrderSchema = z.object({
   customerId: z.string().uuid(),
@@ -192,6 +220,7 @@ export const CreateOrderSchema = z.object({
 ```
 
 **Automatic Type Generation**
+
 ```typescript
 export type CreateOrder = z.infer<typeof CreateOrderSchema>;
 export type Order = z.infer<typeof OrderSchema>;
@@ -200,16 +229,17 @@ export type Order = z.infer<typeof OrderSchema>;
 ### Route Definition Pattern
 
 **OpenAPI Route Definition**
+
 ```typescript
 const createOrderRoute = createRoute({
-  method: 'post',
-  path: '/orders',
-  tags: ['orders'],
-  summary: 'Create a new order',
+  method: "post",
+  path: "/orders",
+  tags: ["orders"],
+  summary: "Create a new order",
   request: {
     body: {
       content: {
-        'application/json': {
+        "application/json": {
           schema: CreateOrderSchema,
         },
       },
@@ -218,11 +248,11 @@ const createOrderRoute = createRoute({
   responses: {
     201: {
       content: {
-        'application/json': {
+        "application/json": {
           schema: OrderSchema,
         },
       },
-      description: 'Created order',
+      description: "Created order",
     },
     // ... error responses
   },
@@ -231,9 +261,10 @@ const createOrderRoute = createRoute({
 ```
 
 **Route Handler**
+
 ```typescript
 app.openapi(createOrderRoute, async (c) => {
-  const orderData = c.req.valid('json');
+  const orderData = c.req.valid("json");
   const order = await ordersService.create(orderData);
   return c.json(order, 201);
 });
@@ -242,6 +273,7 @@ app.openapi(createOrderRoute, async (c) => {
 ### Business Logic Separation
 
 **Service Layer**
+
 ```typescript
 export class OrdersService {
   private orders: Order[] = [];
@@ -251,7 +283,7 @@ export class OrdersService {
     const order: Order = {
       id: uuidv4(),
       ...data,
-      status: 'pending',
+      status: "pending",
       createdAt: now,
       updatedAt: now,
     };
@@ -266,36 +298,43 @@ export class OrdersService {
 ### Error Handling Strategy
 
 **Centralized Error Handler**
+
 ```typescript
 export const errorHandler: ErrorHandler = (err, c) => {
   // Zod validation errors
   if (err instanceof ZodError) {
     const validationErrors = err.errors
-      .map((error) => `${error.path.join('.')} ${error.message}`)
-      .join(', ');
-    
-    return c.json({
-      type: 'validation_error',
-      title: 'Validation Error',
-      status: 400,
-      detail: validationErrors,
-      instance: c.req.path,
-    }, 400);
+      .map((error) => `${error.path.join(".")} ${error.message}`)
+      .join(", ");
+
+    return c.json(
+      {
+        type: "validation_error",
+        title: "Validation Error",
+        status: 400,
+        detail: validationErrors,
+        instance: c.req.path,
+      },
+      400
+    );
   }
-  
+
   // HTTP exceptions
   if (err instanceof HTTPException) {
     // ... handle HTTP errors
   }
-  
+
   // Unexpected errors
-  return c.json({
-    type: 'internal_error',
-    title: 'Internal Server Error',
-    status: 500,
-    detail: 'An unexpected error occurred',
-    instance: c.req.path,
-  }, 500);
+  return c.json(
+    {
+      type: "internal_error",
+      title: "Internal Server Error",
+      status: 500,
+      detail: "An unexpected error occurred",
+      instance: c.req.path,
+    },
+    500
+  );
 };
 ```
 
@@ -311,11 +350,13 @@ export const errorHandler: ErrorHandler = (err, c) => {
 ### Memory Management
 
 **In-Memory Storage**
+
 - Current implementation uses in-memory arrays for simplicity
 - Production would use persistent storage (PostgreSQL, MongoDB)
 - Service remains stateless via external data stores
 
 **Resource Usage**
+
 - Minimal memory footprint
 - No persistent connections or background processes
 - Graceful shutdown handling
@@ -323,11 +364,13 @@ export const errorHandler: ErrorHandler = (err, c) => {
 ### Scalability Considerations
 
 **Horizontal Scaling**
+
 - Stateless design enables easy horizontal scaling
 - Load balancer can distribute requests across instances
 - Event publishing handles inter-service communication
 
 **Edge Deployment**
+
 - Compatible with edge runtimes (Cloudflare Workers, Vercel)
 - Cold start optimizations via minimal dependencies
 - Global distribution capability
@@ -337,17 +380,20 @@ export const errorHandler: ErrorHandler = (err, c) => {
 ### Observability Stack
 
 **Distributed Tracing**
+
 - OpenTelemetry automatic instrumentation
 - W3C Trace Context propagation
 - Correlation between requests and events
 
 **Logging Strategy**
+
 - Structured JSON logs with consistent fields
 - Request/response logging with timing
 - Business event logging (order lifecycle)
 - Error logging with stack traces
 
 **Metrics Collection**
+
 - Request count and latency
 - Error rates by endpoint
 - Business metrics (orders created, updated)
@@ -355,16 +401,19 @@ export const errorHandler: ErrorHandler = (err, c) => {
 ### Development Tools
 
 **Token Generation**
+
 ```bash
 npm run generate-token
 ```
 
 **API Testing**
+
 ```bash
 ./examples.sh  # Comprehensive API testing
 ```
 
 **Type Checking**
+
 ```bash
 npm run typecheck
 ```
@@ -374,6 +423,7 @@ npm run typecheck
 ### Container Deployment
 
 **Multi-stage Docker Build**
+
 - Build stage with development dependencies
 - Production stage with minimal runtime
 - Health check integration
@@ -382,12 +432,14 @@ npm run typecheck
 ### Environment Configurations
 
 **Development**
+
 - Hot reload with `tsx watch`
 - Debug logging enabled
 - Local JWT secrets
 - In-memory data storage
 
 **Production**
+
 - Compiled JavaScript execution
 - Structured JSON logging
 - Secure JWT secrets via environment
@@ -397,6 +449,7 @@ npm run typecheck
 ### CI/CD Integration
 
 **Build Pipeline**
+
 1. Install dependencies
 2. Type checking
 3. Linting
@@ -410,12 +463,14 @@ npm run typecheck
 ### Authentication Security
 
 **JWT Validation**
+
 - Signature verification with secret key
 - Expiration time validation
 - Scope-based authorization checks
 - Bearer token extraction from Authorization header
 
 **Secret Management**
+
 - Environment variable configuration
 - No hardcoded secrets in code
 - Rotation capability via environment updates
@@ -423,12 +478,14 @@ npm run typecheck
 ### Input Validation
 
 **Schema Validation**
+
 - All inputs validated via Zod schemas
 - UUID format validation
 - Numeric range validation
 - Required field validation
 
 **Output Sanitization**
+
 - Structured error responses
 - No sensitive data leakage
 - Consistent error formats
@@ -436,22 +493,26 @@ npm run typecheck
 ## 📈 Future Enhancements
 
 ### Persistent Storage
+
 - Replace in-memory storage with PostgreSQL/MongoDB
 - Database migrations and schema versioning
 - Connection pooling and retry logic
 
 ### Event Publishing
+
 - Kafka/NATS integration for event publishing
 - Event store for event sourcing
 - Dead letter queue for failed events
 
 ### Advanced Features
+
 - API versioning strategy
 - Rate limiting and throttling
 - Caching layer (Redis)
 - Backup and disaster recovery
 
 ### Monitoring Enhancements
+
 - Prometheus metrics export
 - Grafana dashboards
 - Alerting rules

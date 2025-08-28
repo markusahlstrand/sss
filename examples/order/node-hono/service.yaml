@@ -20,7 +20,7 @@ endpoints:
     description: Liveness probe
     auth_required: false
   - path: /readyz
-    method: GET  
+    method: GET
     description: Readiness probe
     auth_required: false
   - path: /openapi.json

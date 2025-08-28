@@ -15,19 +15,22 @@ The goal is to ensure:
 **For AI Assistants and Developers:**
 
 📋 **Core Specifications:**
+
 - **This README** - Service Standard v1 requirements and patterns
 - **[Service Example Spec](./examples/order/spec.md)** - Detailed service requirements
 - **[Copilot Instructions](./.github/copilot-instructions.md)** - AI generation guidelines and common pitfalls
 
 🛠 **Technology Stacks** (choose one):
+
 - **[Node.js Stack](./stacks/node/index.md)** - Multiple router options with detailed guides
 - **[.NET Stack](./stacks/dotnet.md)** - ASP.NET Core implementation
-- **[Python Stack](./stacks/python.md)** - FastAPI implementation  
+- **[Python Stack](./stacks/python.md)** - FastAPI implementation
 - **[Rust Stack](./stacks/rust.md)** - Axum high-performance implementation
 - **[Go Stack](./stacks/go.md)** - Gin/Chi lightweight implementation
 - **[Java Stack](./stacks/java.md)** - Spring Boot enterprise implementation
 
 💡 **Working Examples:**
+
 - **[Orders Service Examples](./examples/order/)** - Complete implementations in multiple languages
 
 ---
@@ -167,8 +170,9 @@ To implement a Service Standard v1 compliant service, you'll need these key reso
 
 1. **This README** - Core Service Standard v1 requirements and specifications
 2. **[Technology Stack Guide](./stacks/)** - Choose your implementation technology:
+
    - **[Node.js](./stacks/node/index.md)** - Multiple router options with detailed guides
-   - **[.NET](./stacks/dotnet.md)** - ASP.NET Core implementation patterns  
+   - **[.NET](./stacks/dotnet.md)** - ASP.NET Core implementation patterns
    - **[Python](./stacks/python.md)** - FastAPI with automatic documentation
    - **[Rust](./stacks/rust.md)** - High-performance Axum implementation
    - **[Go](./stacks/go.md)** - Lightweight Gin/Chi patterns
@@ -180,7 +184,7 @@ To implement a Service Standard v1 compliant service, you'll need these key reso
 ### 🎯 Quick Start Process
 
 1. **Choose your stack** from the links above
-2. **Review the service spec** for requirements understanding  
+2. **Review the service spec** for requirements understanding
 3. **Generate your service** using AI assistance or manual implementation
 4. **Validate compliance** using the provided testing scripts
 
@@ -375,6 +379,19 @@ The Node.js Hono + Zod OpenAPI implementation (August 2025) was successfully gen
 - **Modern architecture**: Web Standards APIs, edge runtime compatibility, stateless design
 - **All endpoints working**: Authentication, error handling, events, health checks, interactive Swagger UI
 - **Production ready**: Multi-stage Docker, edge deployment ready, comprehensive observability stack
+
+#### Drizzle SQLite Database Integration ✅
+
+The Drizzle ORM + SQLite database integration (August 2025) was successfully implemented in the Node.js Hono example:
+
+- **Full type safety**: Schema-first approach with automatic TypeScript type inference from database schema
+- **Node.js v23 compatibility**: @libsql/client proved more reliable than better-sqlite3 for modern Node versions
+- **Zero-config deployment**: File-based SQLite perfect for Service Standard v1 stateless architecture
+- **Schema evolution**: Clean migration patterns with drizzle-kit for version-controlled database changes
+- **Repository pattern**: Clean separation between API schemas (Zod) and database schemas (Drizzle)
+- **Health check integration**: Database connectivity properly integrated into readiness probes
+- **Performance**: Efficient queries with compile-time optimization and connection pooling
+- **Production ready**: File-based database ideal for containerized deployments and easy backups
 
 ---
 

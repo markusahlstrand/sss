@@ -1,49 +1,49 @@
-import { createRoute } from '@hono/zod-openapi';
-import type { OpenAPIHono } from '@hono/zod-openapi';
-import { z } from 'zod';
+import { createRoute } from "@hono/zod-openapi";
+import type { OpenAPIHono } from "@hono/zod-openapi";
+import { z } from "zod";
 import {
   OrderSchema,
   CreateOrderSchema,
   UpdateOrderSchema,
   PaginationSchema,
   ProblemSchema,
-} from '../schemas';
-import { OrdersService } from '../services/orders';
+} from "../schemas";
+import { OrdersService } from "../services/orders";
 
 // Get orders route
 const getOrdersRoute = createRoute({
-  method: 'get',
-  path: '/orders',
-  tags: ['orders'],
-  summary: 'Get all orders',
-  description: 'Retrieve a paginated list of orders',
+  method: "get",
+  path: "/orders",
+  tags: ["orders"],
+  summary: "Get all orders",
+  description: "Retrieve a paginated list of orders",
   request: {
     query: PaginationSchema,
   },
   responses: {
     200: {
       content: {
-        'application/json': {
+        "application/json": {
           schema: z.array(OrderSchema),
         },
       },
-      description: 'List of orders',
+      description: "List of orders",
     },
     401: {
       content: {
-        'application/problem+json': {
+        "application/problem+json": {
           schema: ProblemSchema,
         },
       },
-      description: 'Unauthorized',
+      description: "Unauthorized",
     },
     403: {
       content: {
-        'application/problem+json': {
+        "application/problem+json": {
           schema: ProblemSchema,
         },
       },
-      description: 'Forbidden',
+      description: "Forbidden",
     },
   },
   security: [{ Bearer: [] }],
@@ -51,11 +51,11 @@ const getOrdersRoute = createRoute({
 
 // Get single order route
 const getOrderRoute = createRoute({
-  method: 'get',
-  path: '/orders/{id}',
-  tags: ['orders'],
-  summary: 'Get order by ID',
-  description: 'Retrieve a single order by its ID',
+  method: "get",
+  path: "/orders/{id}",
+  tags: ["orders"],
+  summary: "Get order by ID",
+  description: "Retrieve a single order by its ID",
   request: {
     params: z.object({
       id: z.string().uuid(),
@@ -64,35 +64,35 @@ const getOrderRoute = createRoute({
   responses: {
     200: {
       content: {
-        'application/json': {
+        "application/json": {
           schema: OrderSchema,
         },
       },
-      description: 'Order details',
+      description: "Order details",
     },
     404: {
       content: {
-        'application/problem+json': {
+        "application/problem+json": {
           schema: ProblemSchema,
         },
       },
-      description: 'Order not found',
+      description: "Order not found",
     },
     401: {
       content: {
-        'application/problem+json': {
+        "application/problem+json": {
           schema: ProblemSchema,
         },
       },
-      description: 'Unauthorized',
+      description: "Unauthorized",
     },
     403: {
       content: {
-        'application/problem+json': {
+        "application/problem+json": {
           schema: ProblemSchema,
         },
       },
-      description: 'Forbidden',
+      description: "Forbidden",
     },
   },
   security: [{ Bearer: [] }],
@@ -100,15 +100,15 @@ const getOrderRoute = createRoute({
 
 // Create order route
 const createOrderRoute = createRoute({
-  method: 'post',
-  path: '/orders',
-  tags: ['orders'],
-  summary: 'Create a new order',
-  description: 'Create a new order with the provided details',
+  method: "post",
+  path: "/orders",
+  tags: ["orders"],
+  summary: "Create a new order",
+  description: "Create a new order with the provided details",
   request: {
     body: {
       content: {
-        'application/json': {
+        "application/json": {
           schema: CreateOrderSchema,
         },
       },
@@ -117,35 +117,35 @@ const createOrderRoute = createRoute({
   responses: {
     201: {
       content: {
-        'application/json': {
+        "application/json": {
           schema: OrderSchema,
         },
       },
-      description: 'Created order',
+      description: "Created order",
     },
     400: {
       content: {
-        'application/problem+json': {
+        "application/problem+json": {
           schema: ProblemSchema,
         },
       },
-      description: 'Validation error',
+      description: "Validation error",
     },
     401: {
       content: {
-        'application/problem+json': {
+        "application/problem+json": {
           schema: ProblemSchema,
         },
       },
-      description: 'Unauthorized',
+      description: "Unauthorized",
     },
     403: {
       content: {
-        'application/problem+json': {
+        "application/problem+json": {
           schema: ProblemSchema,
         },
       },
-      description: 'Forbidden',
+      description: "Forbidden",
     },
   },
   security: [{ Bearer: [] }],
@@ -153,18 +153,18 @@ const createOrderRoute = createRoute({
 
 // Update order route
 const updateOrderRoute = createRoute({
-  method: 'patch',
-  path: '/orders/{id}',
-  tags: ['orders'],
-  summary: 'Update order status',
-  description: 'Update the status of an existing order',
+  method: "patch",
+  path: "/orders/{id}",
+  tags: ["orders"],
+  summary: "Update order status",
+  description: "Update the status of an existing order",
   request: {
     params: z.object({
       id: z.string().uuid(),
     }),
     body: {
       content: {
-        'application/json': {
+        "application/json": {
           schema: UpdateOrderSchema,
         },
       },
@@ -173,43 +173,43 @@ const updateOrderRoute = createRoute({
   responses: {
     200: {
       content: {
-        'application/json': {
+        "application/json": {
           schema: OrderSchema,
         },
       },
-      description: 'Updated order',
+      description: "Updated order",
     },
     400: {
       content: {
-        'application/problem+json': {
+        "application/problem+json": {
           schema: ProblemSchema,
         },
       },
-      description: 'Validation error',
+      description: "Validation error",
     },
     404: {
       content: {
-        'application/problem+json': {
+        "application/problem+json": {
           schema: ProblemSchema,
         },
       },
-      description: 'Order not found',
+      description: "Order not found",
     },
     401: {
       content: {
-        'application/problem+json': {
+        "application/problem+json": {
           schema: ProblemSchema,
         },
       },
-      description: 'Unauthorized',
+      description: "Unauthorized",
     },
     403: {
       content: {
-        'application/problem+json': {
+        "application/problem+json": {
           schema: ProblemSchema,
         },
       },
-      description: 'Forbidden',
+      description: "Forbidden",
     },
   },
   security: [{ Bearer: [] }],
@@ -220,27 +220,27 @@ export function registerOrderRoutes(app: OpenAPIHono) {
   const ordersService = new OrdersService();
 
   app.openapi(getOrdersRoute, async (c) => {
-    const query = c.req.valid('query');
+    const query = c.req.valid("query");
     const orders = await ordersService.findAll(query);
-    return c.json(orders);
+    return c.json(orders) as any;
   });
 
   app.openapi(getOrderRoute, async (c) => {
-    const { id } = c.req.valid('param');
+    const { id } = c.req.valid("param");
     const order = await ordersService.findById(id);
-    return c.json(order);
+    return c.json(order) as any;
   });
 
   app.openapi(createOrderRoute, async (c) => {
-    const orderData = c.req.valid('json');
+    const orderData = c.req.valid("json");
     const order = await ordersService.create(orderData);
-    return c.json(order, 201);
+    return c.json(order, 201) as any;
   });
 
   app.openapi(updateOrderRoute, async (c) => {
-    const { id } = c.req.valid('param');
-    const updateData = c.req.valid('json');
+    const { id } = c.req.valid("param");
+    const updateData = c.req.valid("json");
     const order = await ordersService.update(id, updateData);
-    return c.json(order);
+    return c.json(order) as any;
   });
 }

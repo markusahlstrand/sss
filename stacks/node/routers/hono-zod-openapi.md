@@ -522,11 +522,13 @@ The Hono + Zod OpenAPI router has been successfully implemented and deployed wit
 #### Key Technical Decisions
 
 **Package Compatibility:**
+
 - **Hono v4 Required**: Use Hono v4+ for compatibility with latest `@hono/node-server` and `@hono/zod-openapi`
 - **JWT Integration**: Hono v4 includes JWT middleware in core - no need for separate `@hono/jwt` package
 - **CloudEvents Version**: Use `cloudevents@^8.0.0` for Node.js 20+ compatibility (v6 has Node.js version restrictions)
 
 **Schema-First Development:**
+
 ```typescript
 // Zod schemas provide both validation AND OpenAPI generation
 const CreateOrderSchema = z.object({
@@ -540,17 +542,22 @@ export type CreateOrder = z.infer<typeof CreateOrderSchema>;
 
 // Route definition with schema
 const createOrderRoute = createRoute({
-  method: 'post',
-  path: '/orders',
-  request: { body: { content: { 'application/json': { schema: CreateOrderSchema } } } },
-  responses: { 201: { content: { 'application/json': { schema: OrderSchema } } } },
+  method: "post",
+  path: "/orders",
+  request: {
+    body: { content: { "application/json": { schema: CreateOrderSchema } } },
+  },
+  responses: {
+    201: { content: { "application/json": { schema: OrderSchema } } },
+  },
 });
 ```
 
 **Authentication Pattern:**
+
 ```typescript
 // Built-in JWT middleware from Hono core
-import { jwt } from 'hono/jwt';
+import { jwt } from "hono/jwt";
 
 export const authMiddleware = jwt({
   secret: process.env.JWT_SECRET!,
@@ -559,11 +566,15 @@ export const authMiddleware = jwt({
 // Scope-based authorization middleware
 export const requireScopes = (requiredScopes: string[]) => {
   return createMiddleware(async (c, next) => {
-    const payload = c.get('jwtPayload') as JWTPayload;
+    const payload = c.get("jwtPayload") as JWTPayload;
     const userScopes = payload.scopes || [];
-    const hasRequiredScope = requiredScopes.some(scope => userScopes.includes(scope));
+    const hasRequiredScope = requiredScopes.some((scope) =>
+      userScopes.includes(scope)
+    );
     if (!hasRequiredScope) {
-      throw new HTTPException(403, { message: JSON.stringify(problemResponse) });
+      throw new HTTPException(403, {
+        message: JSON.stringify(problemResponse),
+      });
     }
     await next();
   });
@@ -573,16 +584,19 @@ export const requireScopes = (requiredScopes: string[]) => {
 #### Performance Results
 
 **Build Performance:**
+
 - TypeScript compilation: ~2-3 seconds for full project
 - Hot reload development: <1 second for incremental changes
 - Production build size: ~45KB minified (excluding node_modules)
 
 **Runtime Performance:**
+
 - Cold start time: <50ms on serverless platforms
 - Memory usage: ~15-20MB baseline (very efficient)
 - Request handling: >1000 requests/second on single core
 
 **Developer Experience:**
+
 - **Excellent**: Full TypeScript inference from schemas to handlers
 - **Fast feedback**: Immediate type errors and validation feedback
 - **Easy testing**: Built-in test client and comprehensive examples
@@ -591,44 +605,55 @@ export const requireScopes = (requiredScopes: string[]) => {
 #### Common Patterns
 
 **Error Handling:**
+
 ```typescript
 // Centralized RFC 7807 error handler
 export const errorHandler: ErrorHandler = (err, c) => {
   if (err instanceof ZodError) {
-    return c.json({
-      type: 'validation_error',
-      title: 'Validation Error',
-      status: 400,
-      detail: err.errors.map(e => `${e.path.join('.')} ${e.message}`).join(', '),
-      instance: c.req.path,
-    }, 400, { 'Content-Type': 'application/problem+json' });
+    return c.json(
+      {
+        type: "validation_error",
+        title: "Validation Error",
+        status: 400,
+        detail: err.errors
+          .map((e) => `${e.path.join(".")} ${e.message}`)
+          .join(", "),
+        instance: c.req.path,
+      },
+      400,
+      { "Content-Type": "application/problem+json" }
+    );
   }
   // ... handle other error types
 };
 ```
 
 **Middleware Composition:**
+
 ```typescript
 // Clean middleware layering
-app.use('*', loggerMiddleware);
-app.use('*', cors());
-app.use('/orders/*', authMiddleware);
-app.use('/orders/*', requireScopes(['orders.read']));
+app.use("*", loggerMiddleware);
+app.use("*", cors());
+app.use("/orders/*", authMiddleware);
+app.use("/orders/*", requireScopes(["orders.read"]));
 ```
 
 #### Deployment Success
 
 **Container Deployment:**
+
 - Multi-stage Dockerfile with optimized production image
 - Health check integration works seamlessly
 - Environment-based configuration pattern
 
 **Edge Deployment Ready:**
+
 - Compatible with Cloudflare Workers, Vercel Edge Functions
 - Minimal bundle size enables fast edge deployment
 - Web Standards APIs ensure runtime compatibility
 
 **Observability:**
+
 - OpenTelemetry integration works out of the box
 - Structured logging with trace correlation
 - Health endpoints (`/healthz`, `/readyz`) for container orchestration
@@ -636,7 +661,7 @@ app.use('/orders/*', requireScopes(['orders.read']));
 #### Recommendations
 
 1. **Start with Hono v4+** - Ensures compatibility with latest ecosystem packages
-2. **Schema-first approach** - Define Zod schemas first, then build routes around them  
+2. **Schema-first approach** - Define Zod schemas first, then build routes around them
 3. **Use built-in middleware** - Leverage Hono's included JWT, CORS, and logging middleware
 4. **Centralize error handling** - Single error handler for consistent RFC 7807 responses
 5. **Test edge deployment early** - Verify compatibility with target edge runtime

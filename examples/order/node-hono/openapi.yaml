@@ -18,7 +18,7 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      
+
   schemas:
     ServiceInfo:
       type: object
@@ -30,7 +30,7 @@ components:
         version:
           type: string
           example: 1.0.0
-          
+
     Health:
       type: object
       required: [status]
@@ -38,7 +38,7 @@ components:
         status:
           type: string
           example: ok
-          
+
     OrderItem:
       type: object
       required: [productId, quantity, price]
@@ -55,7 +55,7 @@ components:
           type: number
           minimum: 0.01
           example: 29.99
-          
+
     CreateOrder:
       type: object
       required: [customerId, items, totalAmount]
@@ -68,12 +68,12 @@ components:
           type: array
           minItems: 1
           items:
-            $ref: '#/components/schemas/OrderItem'
+            $ref: "#/components/schemas/OrderItem"
         totalAmount:
           type: number
           minimum: 0.01
           example: 59.98
-          
+
     UpdateOrder:
       type: object
       required: [status]
@@ -82,10 +82,11 @@ components:
           type: string
           enum: [pending, confirmed, shipped, delivered]
           example: confirmed
-          
+
     Order:
       type: object
-      required: [id, customerId, items, totalAmount, status, createdAt, updatedAt]
+      required:
+        [id, customerId, items, totalAmount, status, createdAt, updatedAt]
       properties:
         id:
           type: string
@@ -98,7 +99,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/OrderItem'
+            $ref: "#/components/schemas/OrderItem"
         totalAmount:
           type: number
           example: 59.98
@@ -114,7 +115,7 @@ components:
           type: string
           format: date-time
           example: 2023-12-01T12:00:00Z
-          
+
     Problem:
       type: object
       required: [type, title, status, detail, instance]
@@ -142,12 +143,12 @@ paths:
       description: Returns basic information about the service
       tags: [service]
       responses:
-        '200':
+        "200":
           description: Service information
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ServiceInfo'
+                $ref: "#/components/schemas/ServiceInfo"
 
   /healthz:
     get:
@@ -155,12 +156,12 @@ paths:
       description: Returns the health status of the service
       tags: [health]
       responses:
-        '200':
+        "200":
           description: Service is alive
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Health'
+                $ref: "#/components/schemas/Health"
 
   /readyz:
     get:
@@ -168,12 +169,12 @@ paths:
       description: Returns the readiness status of the service
       tags: [health]
       responses:
-        '200':
+        "200":
           description: Service is ready
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Health'
+                $ref: "#/components/schemas/Health"
 
   /openapi.json:
     get:
@@ -181,7 +182,7 @@ paths:
       description: Returns the OpenAPI specification for this service
       tags: [documentation]
       responses:
-        '200':
+        "200":
           description: OpenAPI specification
           content:
             application/json:
@@ -212,27 +213,27 @@ paths:
             minimum: 0
             default: 0
       responses:
-        '200':
+        "200":
           description: List of orders
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Order'
-        '401':
+                  $ref: "#/components/schemas/Order"
+        "401":
           description: Unauthorized
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '403':
+                $ref: "#/components/schemas/Problem"
+        "403":
           description: Forbidden
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
-                
+                $ref: "#/components/schemas/Problem"
+
     post:
       summary: Create a new order
       description: Create a new order with the provided details
@@ -244,32 +245,32 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateOrder'
+              $ref: "#/components/schemas/CreateOrder"
       responses:
-        '201':
+        "201":
           description: Created order
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Order'
-        '400':
+                $ref: "#/components/schemas/Order"
+        "400":
           description: Validation error
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '401':
+                $ref: "#/components/schemas/Problem"
+        "401":
           description: Unauthorized
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '403':
+                $ref: "#/components/schemas/Problem"
+        "403":
           description: Forbidden
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
 
   /orders/{id}:
     get:
@@ -287,31 +288,31 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Order details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Order'
-        '404':
+                $ref: "#/components/schemas/Order"
+        "404":
           description: Order not found
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '401':
+                $ref: "#/components/schemas/Problem"
+        "401":
           description: Unauthorized
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '403':
+                $ref: "#/components/schemas/Problem"
+        "403":
           description: Forbidden
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
-                
+                $ref: "#/components/schemas/Problem"
+
     patch:
       summary: Update order status
       description: Update the status of an existing order
@@ -331,35 +332,35 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateOrder'
+              $ref: "#/components/schemas/UpdateOrder"
       responses:
-        '200':
+        "200":
           description: Updated order
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Order'
-        '400':
+                $ref: "#/components/schemas/Order"
+        "400":
           description: Validation error
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '404':
+                $ref: "#/components/schemas/Problem"
+        "404":
           description: Order not found
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '401':
+                $ref: "#/components/schemas/Problem"
+        "401":
           description: Unauthorized
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '403':
+                $ref: "#/components/schemas/Problem"
+        "403":
           description: Forbidden
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
