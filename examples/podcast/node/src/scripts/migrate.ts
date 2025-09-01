@@ -1,12 +1,14 @@
-import { migrate } from "drizzle-orm/libsql/migrator";
-import { db } from "../database/client";
+import { migrate } from "drizzle-orm/d1/migrator";
+import { getDatabase } from "../database/client";
 
 async function main() {
   console.log("Running migrations...");
 
-  await migrate(db, { migrationsFolder: "./drizzle" });
+  // For D1 migrations, we'll need to use wrangler d1 migrations commands
+  // This script is kept for compatibility but D1 migrations work differently
+  console.log("For D1 database migrations, use:");
+  console.log("npx wrangler d1 migrations apply podcast-service-db");
 
-  console.log("Migrations completed!");
   process.exit(0);
 }
 

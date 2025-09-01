@@ -1,7 +1,17 @@
-import { CloudEvent as CE } from "cloudevents";
 import { v4 as uuidv4 } from "uuid";
-import { logger } from "../telemetry";
+import { logger } from "../telemetry-cf";
 import { PodcastEventType } from "./types";
+
+// Edge-compatible CloudEvent interface
+interface CloudEventData {
+  specversion: string;
+  type: string;
+  source: string;
+  id: string;
+  time: string;
+  data: any;
+  subject?: string;
+}
 
 export class EventPublisher {
   private source: string;
@@ -15,7 +25,7 @@ export class EventPublisher {
     data: any,
     subject?: string
   ): Promise<void> {
-    const event = new CE({
+    const event: CloudEventData = {
       specversion: "1.0",
       type: eventType,
       source: this.source,
@@ -23,7 +33,7 @@ export class EventPublisher {
       time: new Date().toISOString(),
       data,
       subject,
-    });
+    };
 
     // For development, log events. In production, send to message broker
     logger.info("Event published", {

@@ -1,3 +1,5 @@
+/// <reference types="@cloudflare/workers-types" />
+
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { swaggerUI } from "@hono/swagger-ui";
 import { cors } from "hono/cors";
@@ -19,23 +21,24 @@ import { EpisodeService } from "./episodes/service";
 import { AudioRepository } from "./audio/repository";
 import { AudioService } from "./audio/service";
 
-export function createApp() {
+export function createApp(database?: D1Database, bucket?: R2Bucket) {
   const app = new OpenAPIHono();
 
   // Initialize services
   const eventPublisher = new EventPublisher();
 
-  const showRepository = new ShowRepository();
+  const showRepository = new ShowRepository(database);
   const showService = new ShowService(showRepository, eventPublisher);
 
-  const episodeRepository = new EpisodeRepository();
+  const episodeRepository = new EpisodeRepository(database);
   const episodeService = new EpisodeService(episodeRepository, eventPublisher);
 
-  const audioRepository = new AudioRepository();
+  const audioRepository = new AudioRepository(database);
   const audioService = new AudioService(
     audioRepository,
     episodeRepository,
-    eventPublisher
+    eventPublisher,
+    bucket
   );
 
   // Global middleware
@@ -78,7 +81,7 @@ export function createApp() {
   app.get("/swagger", swaggerUI({ url: "/openapi.json" }));
 
   // Health routes (no auth required)
-  registerHealthRoutes(app);
+  registerHealthRoutes(app, database);
 
   // All other routes require authentication
   app.use("/shows/*", authMiddleware);

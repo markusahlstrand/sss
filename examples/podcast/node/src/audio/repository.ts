@@ -1,5 +1,5 @@
 import { eq, and } from "drizzle-orm";
-import { db } from "../database/client";
+import { getDatabase } from "../database/client";
 import { audioUploads, episodes } from "../database/schema";
 import { NotFoundError } from "../common/errors";
 
@@ -13,9 +13,14 @@ export interface AudioUploadData {
 }
 
 export class AudioRepository {
+  private db;
+
+  constructor(database?: D1Database) {
+    this.db = getDatabase(database);
+  }
   async findByEpisodeId(showId: string, episodeId: string) {
     // First check if episode exists and belongs to the show
-    const episodeCheck = await db
+    const episodeCheck = await this.db
       .select()
       .from(episodes)
       .where(and(eq(episodes.showId, showId), eq(episodes.id, episodeId)))
@@ -25,7 +30,7 @@ export class AudioRepository {
       throw new NotFoundError("Episode not found");
     }
 
-    const result = await db
+    const result = await this.db
       .select()
       .from(audioUploads)
       .where(eq(audioUploads.episodeId, episodeId))
@@ -42,12 +47,14 @@ export class AudioRepository {
       uploadedAt: now,
     };
 
-    await db.insert(audioUploads).values(newAudioUpload);
+    await this.db.insert(audioUploads).values(newAudioUpload);
     return newAudioUpload;
   }
 
   async delete(episodeId: string) {
-    await db.delete(audioUploads).where(eq(audioUploads.episodeId, episodeId));
+    await this.db
+      .delete(audioUploads)
+      .where(eq(audioUploads.episodeId, episodeId));
     return true;
   }
 }

@@ -10,6 +10,10 @@ Node.js provides excellent support for Service Standard v1 requirements with mul
 - **[Fastify Guide](./routers/fastify.md)** - High-performance JSON schema validation
 - **[Hono + Zod Guide](./routers/hono-zod-openapi.md)** - Modern edge-first with type safety
 
+**Deployment Targets:**
+
+- **[Cloudflare Workers](./targets/cloudflare.md)** - Edge deployment with D1 database and R2 storage
+
 **Database Integration:**
 
 - **[Database Options](./databases/)** - Type-safe database layers with Drizzle, Prisma, and more
@@ -19,6 +23,7 @@ Node.js provides excellent support for Service Standard v1 requirements with mul
 
 - **[NestJS Orders Service](../../examples/order/node-nest/)** - Complete working example
 - **[Hono + Zod Orders Service](../../examples/order/node-hono/)** - Edge-ready implementation
+- **[Podcast Service with R2 Storage](../../examples/podcast/node/)** - Cloudflare Workers with file uploads
 
 ## Overview
 
@@ -200,7 +205,7 @@ Regardless of router choice, all implementations must include:
 - Prefer modern Web Standards APIs over Node.js-specific patterns
 - Need minimal bundle size for edge/serverless environments
 
-## Recent Implementation Experience
+## Learnings from Recent Implementations
 
 ### Hono + Zod OpenAPI Success (August 2025) ✅
 
@@ -214,39 +219,53 @@ The Hono + Zod OpenAPI implementation was successfully generated and is fully op
 - **Modern development experience**: Schema-first development with excellent tooling
 - **Service Standard v1 compliance**: All requirements met with clean, maintainable code
 
-**Technical Highlights:**
-
-- **Version compatibility**: Hono v4 required for latest `@hono/node-server` compatibility
-- **JWT integration**: Built-in `jwt()` middleware from Hono core (no separate `@hono/jwt` package needed)
-- **Schema-driven**: Zod schemas provide both validation and automatic OpenAPI generation
-- **Error handling**: Clean RFC 7807 implementation with centralized error middleware
-- **CloudEvents**: Simple integration with structured event publishing
-
-**Development Experience:**
-
-- **Fast build times**: TypeScript compilation and hot reload are very fast
-- **Excellent IDE support**: Full IntelliSense and type checking throughout
-- **Easy testing**: Built-in test client and comprehensive examples script
-- **Clear documentation**: Auto-generated OpenAPI docs are accurate and complete
-
-**Performance Characteristics:**
-
-- **Cold start optimized**: Minimal dependencies and fast initialization
-- **Memory efficient**: Low memory footprint ideal for serverless functions
-- **Edge deployment ready**: Works seamlessly on Cloudflare Workers, Vercel Edge
-- **Scalable**: Stateless design enables easy horizontal scaling
-
-## Next Steps
-
-## Learnings from Drizzle SQLite Integration (August 2025)
+### Drizzle SQLite Integration (August 2025) ✅
 
 - **Modern driver selection**: @libsql/client is recommended for Node.js v23+ due to better compatibility and no native build issues.
 - **Repository pattern**: Clean separation between API (Zod) and DB (Drizzle) schemas improves maintainability and type safety.
 - **TypeScript strictness**: Hono's strict type inference may require explicit type assertions when bridging API and DB layers.
 - **Health checks**: Integrate database connectivity into readiness/liveness endpoints for robust production deployments.
 - **Zero-config deployment**: SQLite's file-based approach is ideal for containerized and stateless services.
-- **Migration management**: drizzle-kit enables version-controlled schema evolution; distributed SQLite (Turso) may need custom migration handling.
-- **Performance**: Compile-time query building and connection pooling provide excellent efficiency for microservices.
+
+### Cloudflare Workers + R2 Storage (September 2025) ✅
+
+**Complete edge deployment stack with enterprise-grade file storage:**
+
+**Technical Achievements:**
+
+- **D1 Database**: SQLite-compatible serverless database with global replication
+- **R2 Storage**: S3-compatible object storage with zero egress fees for audio/media files
+- **Edge Runtime**: Global distribution to 200+ locations with sub-millisecond cold starts
+- **Repository Injection**: Clean dependency injection pattern for D1Database and R2Bucket bindings
+
+**Key Implementation Patterns:**
+
+- **Worker Entry Point**: `/// <reference types="@cloudflare/workers-types" />` and proper binding interfaces
+- **Build Optimization**: Separate `tsconfig.worker.json` excluding Node.js-specific files
+- **Package Dependencies**: Move `@types/*` to `devDependencies`, use `npx` in build commands
+- **Multipart Uploads**: Native `formData()` parsing with R2 integration for real file uploads
+- **Migration Strategy**: `wrangler d1 migrations apply` for both local and remote databases
+
+**Performance Benefits:**
+
+- **Global CDN**: R2 files served from edge locations worldwide
+- **Cost Efficiency**: No egress fees for file downloads, pay-per-request pricing
+- **Automatic Scaling**: Handle traffic spikes without configuration
+- **Zero Maintenance**: Managed database and storage with enterprise SLAs
+
+**Development Experience:**
+
+- **Local Development**: `wrangler dev` provides seamless local development environment
+- **Easy Deployment**: Single command deployment with automatic asset optimization
+- **Monitoring**: Built-in analytics and real-time logs via Cloudflare dashboard
+- **Version Management**: Automatic rollback capabilities and deployment history
+
+**File Storage Architecture:**
+
+- **Structured Keys**: `audio/{show_id}/{episode_id}/{file_id}/{filename}` organization
+- **Public URLs**: `https://bucket-name.r2.dev/key` for immediate global access
+- **Custom Domains**: Support for branded CDN domains (cdn.yourservice.com)
+- **Metadata Tracking**: File info stored in D1 with relationships to business entities
 
 1. **Review the specific router documentation** for implementation details
 2. **Check the `/examples/` folder** for complete working implementations

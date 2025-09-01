@@ -1,6 +1,6 @@
-# Podcast Service - Node.js/Hono Implementation
+# Podcast Service - Cloudflare Workers Edition
 
-A **Service Standard v1** compliant podcast service built with **Hono**, **Zod OpenAPI**, **SQLite**, and **Drizzle ORM**.
+A **Service Standard v1** compliant podcast service built with **Hono**, **Zod OpenAPI**, **SQLite**, and **Drizzle ORM**, optimized for **Cloudflare Workers** edge deployment.
 
 ## Features
 
@@ -9,10 +9,10 @@ A **Service Standard v1** compliant podcast service built with **Hono**, **Zod O
 - ✅ **SQLite with Drizzle ORM** for data persistence
 - ✅ **JWT authentication** with scope-based authorization
 - ✅ **CloudEvents** for event publishing
-- ✅ **OpenTelemetry** for observability
+- ✅ **Edge-optimized** for Cloudflare Workers
 - ✅ **RFC 7807 Problem+JSON** error handling
 - ✅ **Automatic API documentation** via Swagger UI
-- ✅ **Docker** support
+- ✅ **Docker** support for local development
 
 ## Quick Start
 
@@ -20,8 +20,9 @@ A **Service Standard v1** compliant podcast service built with **Hono**, **Zod O
 
 - Node.js 20+
 - npm or yarn
+- Wrangler CLI (for Cloudflare Workers deployment)
 
-### Development Setup
+### Local Development (Node.js)
 
 1. **Install dependencies:**
 
@@ -43,18 +44,78 @@ A **Service Standard v1** compliant podcast service built with **Hono**, **Zod O
    npm run db:migrate
    ```
 
-4. **Start development server:**
+4. **Start local development server:**
+   ```bash
+   npm run dev:local
+   ```
+
+### Cloudflare Workers Development
+
+1. **Install dependencies:**
+
+   ```bash
+   npm install
+   ```
+
+2. **Start Cloudflare Workers dev server:**
+
    ```bash
    npm run dev
    ```
 
-The service will be available at `http://localhost:3000`.
+   The service will be available at `http://localhost:8787`
+
+## 🚀 Deployment
+
+### Deploy to Cloudflare Workers
+
+1. **Install Wrangler CLI globally:**
+
+   ```bash
+   npm install -g wrangler
+   ```
+
+2. **Login to Cloudflare:**
+
+   ```bash
+   wrangler login
+   ```
+
+3. **Set up production secrets:**
+
+   ```bash
+   # Set JWT secret for production
+   wrangler secret put JWT_SECRET
+
+   # Set database URL (for production Turso database)
+   wrangler secret put DATABASE_URL
+   ```
+
+4. **Deploy to Cloudflare Workers:**
+
+   ```bash
+   npm run deploy
+   ```
+
+5. **Your service will be available at:**
+   ```
+   https://podcast-service.<your-subdomain>.workers.dev
+   ```
+
+### Production Database
+
+For production, consider using **Turso** (libSQL) for a distributed SQLite database:
+
+1. Sign up at [turso.tech](https://turso.tech)
+2. Create a database: `turso db create podcast-service`
+3. Get connection URL: `turso db show podcast-service --url`
+4. Set as secret: `wrangler secret put DATABASE_URL`
 
 ### API Documentation
 
-- **Swagger UI:** http://localhost:3000/swagger
-- **OpenAPI JSON:** http://localhost:3000/openapi.json
-- **Service Info:** http://localhost:3000/
+- **Swagger UI:** http://localhost:8787/swagger (dev) or https://your-worker.workers.dev/swagger (prod)
+- **OpenAPI JSON:** http://localhost:8787/openapi.json
+- **Service Info:** http://localhost:8787/
 
 ### Authentication
 

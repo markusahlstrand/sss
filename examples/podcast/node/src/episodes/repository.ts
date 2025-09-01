@@ -1,12 +1,18 @@
 import { eq, and } from "drizzle-orm";
-import { db } from "../database/client";
+import { getDatabase } from "../database/client";
 import { episodes } from "../database/schema";
 import { CreateEpisode, UpdateEpisode, Pagination } from "./schemas";
 import { NotFoundError } from "../common/errors";
 
 export class EpisodeRepository {
+  private db;
+
+  constructor(database?: D1Database) {
+    this.db = getDatabase(database);
+  }
+
   async findByShowId(showId: string, { limit, offset }: Pagination) {
-    return await db
+    return await this.db
       .select()
       .from(episodes)
       .where(eq(episodes.showId, showId))
@@ -16,7 +22,7 @@ export class EpisodeRepository {
   }
 
   async findById(showId: string, episodeId: string) {
-    const result = await db
+    const result = await this.db
       .select()
       .from(episodes)
       .where(and(eq(episodes.showId, showId), eq(episodes.id, episodeId)))
@@ -37,7 +43,7 @@ export class EpisodeRepository {
       updatedAt: now,
     };
 
-    await db.insert(episodes).values(newEpisode);
+    await this.db.insert(episodes).values(newEpisode);
     return newEpisode;
   }
 
@@ -53,7 +59,7 @@ export class EpisodeRepository {
       updatedAt: new Date().toISOString(),
     };
 
-    await db
+    await this.db
       .update(episodes)
       .set({
         ...data,
@@ -78,7 +84,7 @@ export class EpisodeRepository {
       updatedAt: now,
     };
 
-    await db
+    await this.db
       .update(episodes)
       .set({
         published: true,
@@ -96,7 +102,7 @@ export class EpisodeRepository {
       throw new NotFoundError("Episode not found");
     }
 
-    await db
+    await this.db
       .delete(episodes)
       .where(and(eq(episodes.showId, showId), eq(episodes.id, episodeId)));
 

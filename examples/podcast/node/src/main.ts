@@ -1,7 +1,6 @@
-import "./telemetry"; // Initialize telemetry first
 import { serve } from "@hono/node-server";
 import { createApp } from "./app";
-import { logger } from "./telemetry";
+import { logger } from "./telemetry/";
 
 const app = createApp();
 const port = parseInt(process.env.PORT || "3000");

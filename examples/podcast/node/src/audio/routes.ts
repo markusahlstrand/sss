@@ -94,16 +94,33 @@ export function registerAudioRoutes(
     }
 
     const { show_id, episode_id } = c.req.valid("param");
-    // In a real implementation, we'd parse the multipart form data
-    // For now, simulate the file data
-    const fileData = {
-      fileName: "episode.mp3",
-      fileSize: 1000000,
-      mimeType: "audio/mpeg",
-      buffer: Buffer.from("fake audio data"),
-    };
 
     try {
+      // Parse multipart form data
+      const formData = await c.req.formData();
+      const audioFile = formData.get("audio") as File | null;
+
+      if (!audioFile) {
+        const problem = {
+          type: "validation_error",
+          title: "Validation Error",
+          status: 400,
+          detail: "Audio file is required",
+          instance: c.req.path,
+        };
+        throw new HTTPException(400, { message: JSON.stringify(problem) });
+      }
+
+      // Convert File to Buffer
+      const buffer = Buffer.from(await audioFile.arrayBuffer());
+
+      const fileData = {
+        fileName: audioFile.name,
+        fileSize: audioFile.size,
+        mimeType: audioFile.type,
+        buffer,
+      };
+
       const upload = await audioService.uploadAudio(
         show_id,
         episode_id,

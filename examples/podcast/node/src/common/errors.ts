@@ -1,7 +1,7 @@
 import type { ErrorHandler } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { ZodError } from "zod";
-import { logger } from "../telemetry";
+import { logger } from "../telemetry-cf";
 
 export const errorHandler: ErrorHandler = (err, c) => {
   logger.error(`Error in ${c.req.method} ${c.req.path}:`, {

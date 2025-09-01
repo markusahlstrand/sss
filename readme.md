@@ -22,7 +22,7 @@ The goal is to ensure:
 
 🛠 **Technology Stacks** (choose one):
 
-- **[Node.js Stack](./stacks/node/index.md)** - Multiple router options with detailed guides
+- **[Node.js Stack](./stacks/node/index.md)** - Multiple router options with detailed guides + Cloudflare Workers edge deployment
 - **[.NET Stack](./stacks/dotnet.md)** - ASP.NET Core implementation
 - **[Python Stack](./stacks/python.md)** - FastAPI implementation
 - **[Rust Stack](./stacks/rust.md)** - Axum high-performance implementation
@@ -32,6 +32,7 @@ The goal is to ensure:
 💡 **Working Examples:**
 
 - **[Orders Service Examples](./examples/order/)** - Complete implementations in multiple languages
+- **[Podcast Service Examples](./examples/podcast/)** - Cloudflare Workers with D1 database and R2 storage
 
 ---
 
@@ -393,6 +394,21 @@ The Drizzle ORM + SQLite database integration (August 2025) was successfully imp
 - **Health check integration**: Database connectivity properly integrated into readiness probes
 - **Performance**: Efficient queries with compile-time optimization and connection pooling
 - **Production ready**: File-based database ideal for containerized deployments and easy backups
+
+#### Cloudflare Workers Edge Deployment ✅
+
+The Cloudflare Workers implementation with D1 database and R2 storage (September 2025) demonstrates enterprise-grade edge computing:
+
+- **Complete edge stack**: Hono + D1 Database + R2 Storage deployed to 200+ global locations
+- **Real file uploads**: Multipart form parsing with actual R2 bucket storage for audio/media files
+- **Sub-millisecond performance**: Global edge deployment with automatic scaling and zero cold starts
+- **Cost efficiency**: Pay-per-request pricing with zero egress fees for file downloads
+- **Production deployment**: Live service at `https://podcast-service.sesamy-dev.workers.dev`
+- **Seamless development**: `wrangler dev` local development with production parity
+- **Type-safe bindings**: Full TypeScript support for D1Database and R2Bucket integrations
+- **Structured file storage**: Organized R2 keys (`audio/{show_id}/{episode_id}/{file_id}/{filename}`)
+- **Migration workflow**: Simple local/remote database migration commands
+- **Global CDN**: R2 files served instantly from edge locations worldwide
 
 ---
 

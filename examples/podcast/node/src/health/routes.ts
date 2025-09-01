@@ -1,6 +1,7 @@
 import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
-import { db } from "../database/client";
+import { getDatabase, type Database } from "../database/client";
 import { sql } from "drizzle-orm";
+import type { D1Database } from "@cloudflare/workers-types";
 
 const healthSchema = z.object({
   status: z.enum(["healthy", "unhealthy"]),
@@ -55,7 +56,9 @@ const readinessRoute = createRoute({
   },
 });
 
-export function registerHealthRoutes(app: OpenAPIHono) {
+export function registerHealthRoutes(app: OpenAPIHono, database?: D1Database) {
+  const db = getDatabase(database);
+
   // Liveness - always returns healthy if the process is running
   app.openapi(livenessRoute, async (c) => {
     return c.json({

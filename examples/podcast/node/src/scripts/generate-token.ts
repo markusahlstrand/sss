@@ -5,7 +5,7 @@ const payload = {
   scopes: ["podcast.read", "podcast.write", "podcast.publish"],
   iss: "https://auth2.sesamy.dev",
   aud: "podcast-service",
-  exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour
+  exp: Math.floor(Date.now() / 1000) + 3600 * 24,
   iat: Math.floor(Date.now() / 1000),
 };
 

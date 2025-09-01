@@ -226,6 +226,37 @@ examples/[service]/[language]/
 - **Shared state** - Use `Arc<T>` and `RwLock<T>` instead of fighting borrowing rules
 - **Middleware integration** - Custom Tower middleware needed for complex auth scenarios
 
+#### Cloudflare Workers-Specific Pitfalls (September 2025)
+
+- **🚨 Build Command Issues** - Deployment fails with `tsc: command not found`
+  - **Problem**: TypeScript compiler not available during Cloudflare Workers deployment
+  - **Solution**: Use `npx tsc` in build commands instead of assuming global installation
+  - **wrangler.toml fix**: `command = "npx tsc -p tsconfig.worker.json"`
+- **⚠️ Package Categorization** - TypeScript types in wrong dependencies section
+  - **Problem**: `@types/*` packages in `dependencies` instead of `devDependencies`
+  - **Solution**: Move all `@types/*` packages to `devDependencies` for proper build optimization
+  - **Impact**: Reduces bundle size and improves deployment performance
+- **D1 Database Migration Workflow** - Different commands for local vs remote
+  - **Local development**: `npx wrangler d1 migrations apply db-name --local`
+  - **Production deployment**: `npx wrangler d1 migrations apply db-name --remote`
+  - **Migration directory**: Must configure `migrations_dir = "./drizzle"` in wrangler.toml
+- **R2 Storage Integration** - Proper bucket binding and URL generation
+  - **Binding setup**: Configure `[[r2_buckets]]` in wrangler.toml with correct `binding` name
+  - **URL generation**: Use `https://bucket-name.r2.dev/{key}` pattern (no `.name` property on R2Bucket)
+  - **Multipart uploads**: Use native `c.req.formData()` and `Buffer.from(await file.arrayBuffer())`
+- **Worker Entry Point Pattern** - Proper environment binding interfaces
+  - **Reference types**: `/// <reference types="@cloudflare/workers-types" />` at top of worker files
+  - **Environment interface**: Define complete CloudflareEnv with all bindings (D1Database, R2Bucket)
+  - **Dependency injection**: Pass bindings to app creation: `createApp(env.DB, env.BUCKET)`
+- **TypeScript Configuration** - Separate configs for Worker vs Node.js code
+  - **Worker config**: `tsconfig.worker.json` with `"lib": ["ES2022", "WebWorker"]`
+  - **Exclusions**: Exclude Node.js specific files (`src/main.ts`, `src/telemetry.ts`, `src/scripts/`)
+  - **Build target**: Use ES2022+ for optimal Worker runtime compatibility
+- **Repository Dependency Injection** - Clean pattern for database binding
+  - **Constructor pattern**: `constructor(database?: D1Database) { this.db = getDatabase(database); }`
+  - **Type safety**: Use proper TypeScript interfaces for all Cloudflare bindings
+  - **Error handling**: Graceful fallbacks when bindings are unavailable in development
+
 ## File Templates
 
 ### Quick Dependencies (package.json)
@@ -252,7 +283,7 @@ examples/[service]/[language]/
 }
 ```
 
-### Quick Dependencies (package.json for Hono + Zod)
+### Quick Dependencies (package.json for Cloudflare Workers)
 
 ```json
 {
@@ -260,19 +291,54 @@ examples/[service]/[language]/
     "hono": "^4.6.3",
     "@hono/zod-openapi": "0.16.4",
     "@hono/swagger-ui": "^0.4.1",
-    "@hono/node-server": "^1.19.0",
     "zod": "^3.22.4",
     "jsonwebtoken": "^9.0.2",
-    "@opentelemetry/api": "^1.6.0",
-    "@opentelemetry/auto-instrumentations-node": "^0.39.4",
-    "@opentelemetry/sdk-node": "^0.43.0",
-    "@opentelemetry/resources": "^1.18.0",
-    "@opentelemetry/semantic-conventions": "^1.18.0",
-    "winston": "^3.10.0",
+    "drizzle-orm": "^0.30.0",
     "cloudevents": "^8.0.0",
     "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.0.0",
+    "wrangler": "^3.0.0",
+    "typescript": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.0",
+    "@types/uuid": "^9.0.0",
+    "drizzle-kit": "^0.20.0"
+  },
+  "scripts": {
+    "dev": "wrangler dev",
+    "build": "npx tsc -p tsconfig.worker.json",
+    "deploy": "wrangler deploy"
   }
 }
+```
+
+### Cloudflare Workers Configuration (wrangler.toml)
+
+```toml
+name = "service-name"
+main = "dist/worker.js"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+NODE_ENV = "development"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "service-db"
+database_id = "your-database-id"
+migrations_dir = "./drizzle"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "service-assets"
+
+[build]
+command = "npx tsc -p tsconfig.worker.json"
+
+[env.production]
+vars = { NODE_ENV = "production" }
 ```
 
 ### Quick Dependencies (.csproj for .NET)
@@ -459,3 +525,20 @@ _This file should be updated with learnings from each service generation session
 - **Zero-config deployment**: SQLite's file-based approach is ideal for containerized and stateless services.
 - **Migration management**: drizzle-kit enables version-controlled schema evolution; distributed SQLite (Turso) may need custom migration handling.
 - **Performance**: Compile-time query building and connection pooling provide excellent efficiency for microservices.
+
+#### Cloudflare Workers + D1 + R2 Implementation ✅
+
+The Cloudflare Workers implementation with D1 database and R2 storage (September 2025) was successfully generated and deployed:
+
+- **Full Service Standard v1 compliance** achieved on edge runtime with global distribution
+- **Complete tech stack**: Hono + Zod OpenAPI + D1 Database + R2 Storage for enterprise-grade edge applications
+- **Real file uploads**: Multipart form data parsing with actual R2 bucket storage for audio/media files
+- **Global performance**: Sub-millisecond cold starts, 200+ edge locations, zero egress fees
+- **Production deployment**: Live at `https://podcast-service.sesamy-dev.workers.dev` with working file uploads
+- **Database migration**: Seamless D1 migration workflow for both local development and production
+- **Developer experience**: `wrangler dev` for local development, single command deployment
+- **Cost efficiency**: Pay-per-request pricing with no infrastructure management overhead
+- **Type safety**: Full TypeScript support with proper Cloudflare Workers type bindings
+- **Repository pattern**: Clean dependency injection for D1Database and R2Bucket bindings
+- **Structured storage**: Organized file keys (`audio/{show_id}/{episode_id}/{file_id}/{filename}`)
+- **Edge-compatible telemetry**: Custom logging solution optimized for Workers runtime

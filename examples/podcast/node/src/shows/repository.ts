@@ -1,12 +1,18 @@
 import { eq } from "drizzle-orm";
-import { db } from "../database/client";
+import { getDatabase } from "../database/client";
 import { shows } from "../database/schema";
 import { CreateShow, UpdateShow, Pagination } from "./schemas";
 import { NotFoundError } from "../common/errors";
 
 export class ShowRepository {
+  private db;
+
+  constructor(database?: D1Database) {
+    this.db = getDatabase(database);
+  }
+
   async findAll({ limit, offset }: Pagination) {
-    return await db
+    return await this.db
       .select()
       .from(shows)
       .limit(limit)
@@ -15,7 +21,7 @@ export class ShowRepository {
   }
 
   async findById(id: string) {
-    const result = await db
+    const result = await this.db
       .select()
       .from(shows)
       .where(eq(shows.id, id))
@@ -33,7 +39,7 @@ export class ShowRepository {
       updatedAt: now,
     };
 
-    await db.insert(shows).values(newShow);
+    await this.db.insert(shows).values(newShow);
     return newShow;
   }
 
@@ -49,7 +55,7 @@ export class ShowRepository {
       updatedAt: new Date().toISOString(),
     };
 
-    await db
+    await this.db
       .update(shows)
       .set({
         ...data,
@@ -66,7 +72,7 @@ export class ShowRepository {
       throw new NotFoundError("Show not found");
     }
 
-    await db.delete(shows).where(eq(shows.id, id));
+    await this.db.delete(shows).where(eq(shows.id, id));
     return true;
   }
 }

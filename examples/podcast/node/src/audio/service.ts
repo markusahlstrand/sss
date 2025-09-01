@@ -1,3 +1,5 @@
+/// <reference types="@cloudflare/workers-types" />
+
 import { v4 as uuidv4 } from "uuid";
 import { AudioRepository } from "./repository";
 import { EventPublisher } from "../events/publisher";
@@ -8,7 +10,8 @@ export class AudioService {
   constructor(
     private audioRepository: AudioRepository,
     private episodeRepository: EpisodeRepository,
-    private eventPublisher: EventPublisher
+    private eventPublisher: EventPublisher,
+    private bucket?: R2Bucket
   ) {}
 
   async getAudioMetadata(showId: string, episodeId: string) {
@@ -31,11 +34,27 @@ export class AudioService {
       throw new NotFoundError("Episode not found");
     }
 
-    // For this example, we'll simulate storing the file and return a URL
-    // In production, you would upload to cloud storage (S3, GCS, etc.)
     const audioId = uuidv4();
     const fileName = file.fileName;
-    const url = `https://storage.example.com/audio/${audioId}/${fileName}`;
+    const key = `audio/${showId}/${episodeId}/${audioId}/${fileName}`;
+
+    let url: string;
+
+    if (this.bucket) {
+      // Upload to R2 bucket
+      await this.bucket.put(key, file.buffer, {
+        httpMetadata: {
+          contentType: file.mimeType,
+        },
+      });
+
+      // For R2 public URL, you'll need to configure a custom domain or use R2.dev domain
+      // This is a placeholder - in production you'd use your configured R2 public domain
+      url = `https://podcast-service-assets.r2.dev/${key}`;
+    } else {
+      // Fallback for development/testing
+      url = `https://storage.example.com/audio/${audioId}/${fileName}`;
+    }
 
     // Save audio metadata
     const audioUpload = await this.audioRepository.create({
