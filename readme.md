@@ -374,7 +374,8 @@ The Node.js Hono + Zod OpenAPI implementation (August 2025) was successfully gen
 - **Full Service Standard v1 compliance** achieved with cutting-edge edge-ready architecture
 - **Key innovation**: Schema-first development with automatic OpenAPI generation and full TypeScript inference
 - **Performance excellence**: Ultra-fast with minimal bundle size, optimized for serverless/edge deployment
-- **Package compatibility mastered**: Hono v4+ required for latest ecosystem, JWT middleware built into core
+- **Critical version compatibility**: Hono v4.6.3+ with @hono/zod-openapi pinned to v0.16.4 (v0.17+ has breaking changes)
+- **Package compatibility mastered**: JWT middleware built into core, all ecosystem packages aligned
 - **Developer experience**: Exceptional type safety, sub-second builds, comprehensive tooling with hot reload
 - **Modern architecture**: Web Standards APIs, edge runtime compatibility, stateless design
 - **All endpoints working**: Authentication, error handling, events, health checks, interactive Swagger UI

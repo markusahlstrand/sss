@@ -84,8 +84,8 @@ npm install fastify @fastify/swagger @fastify/swagger-ui @fastify/jwt
 - **Newer ecosystem** - fewer third-party packages available
 
 ```bash
-# Quick start
-npm install hono @hono/zod-openapi @hono/swagger-ui zod
+# Quick start - Note: @hono/zod-openapi version 0.16.4 is required (0.17+ has breaking changes)
+npm install hono@^4.6.3 @hono/zod-openapi@0.16.4 @hono/swagger-ui@^0.4.1 zod@^3.22.4
 ```
 
 **📖 [Full Hono + Zod Implementation Guide →](./routers/hono-zod-openapi.md)**

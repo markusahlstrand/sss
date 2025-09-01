@@ -1,0 +1,67 @@
+{
+  "name": "podcast-service",
+  "version": "1.0.0",
+  "description": "Podcast Service - Service Standard v1 compliant API",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch --clear-screen=false src/main.ts",
+    "build": "tsc",
+    "start": "node dist/main.js",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/scripts/migrate.ts",
+    "db:studio": "drizzle-kit studio",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "lint": "eslint src --ext .ts,.tsx",
+    "type-check": "tsc --noEmit",
+    "generate-token": "tsx src/scripts/generate-token.ts"
+  },
+  "keywords": [
+    "service-standard-v1",
+    "podcast",
+    "api",
+    "hono",
+    "zod",
+    "openapi",
+    "sqlite",
+    "drizzle"
+  ],
+  "author": "Service Standard v1",
+  "license": "MIT",
+  "dependencies": {
+    "hono": "^4.6.3",
+    "@hono/zod-openapi": "^0.16.4",
+    "@hono/swagger-ui": "^0.4.1",
+    "@hono/node-server": "^1.19.0",
+    "zod": "^3.22.4",
+    "jsonwebtoken": "^9.0.2",
+    "@types/jsonwebtoken": "^9.0.5",
+    "drizzle-orm": "^0.33.0",
+    "@libsql/client": "^0.14.0",
+    "drizzle-zod": "^0.5.1",
+    "uuid": "^9.0.1",
+    "@types/uuid": "^9.0.7",
+    "cloudevents": "^8.0.2",
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.50.0",
+    "@opentelemetry/sdk-node": "^0.53.0",
+    "@opentelemetry/resources": "^1.26.0",
+    "@opentelemetry/semantic-conventions": "^1.27.0",
+    "winston": "^3.11.0",
+    "multer": "^1.4.5-lts.1",
+    "@types/multer": "^1.4.12"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "tsx": "^4.6.2",
+    "drizzle-kit": "^0.24.2",
+    "vitest": "^2.0.5",
+    "@types/node": "^20.10.6",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^6.17.0",
+    "@typescript-eslint/parser": "^6.17.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

@@ -19,11 +19,19 @@
 
 ```json
 {
-  "hono": "^3.11.7",
-  "@hono/zod-openapi": "^0.8.0",
-  "@hono/swagger-ui": "^0.2.2"
+  "hono": "^4.6.3",
+  "@hono/zod-openapi": "^0.16.4",
+  "@hono/swagger-ui": "^0.4.1",
+  "@hono/node-server": "^1.19.0"
 }
 ```
+
+**⚠️ Critical Version Compatibility Notes:**
+
+- **Hono v4.6.3+ is required** for latest ecosystem compatibility
+- **@hono/zod-openapi v0.16.4** is the stable version (v0.17+ has API breaking changes)
+- **@hono/node-server v1.19+** requires Hono v4+
+- **JWT middleware is built into Hono core** - no need for separate `@hono/jwt` package
 
 **Validation & Schema:**
 
@@ -37,8 +45,8 @@
 
 ```json
 {
-  "@hono/jwt": "^1.1.1",
-  "jsonwebtoken": "^9.0.2"
+  "jsonwebtoken": "^9.0.2",
+  "@types/jsonwebtoken": "^9.0.5"
 }
 ```
 
@@ -660,7 +668,82 @@ app.use("/orders/*", requireScopes(["orders.read"]));
 
 #### Recommendations
 
-1. **Start with Hono v4+** - Ensures compatibility with latest ecosystem packages
+1. **Start with Hono v4.6.3+** - Ensures compatibility with latest ecosystem packages
+2. **Use @hono/zod-openapi v0.16.4** - Stable API, avoid v0.17+ until ecosystem catches up
+3. **Schema-first development** - Define Zod schemas first, build routes around them
+4. **Type inference** - Leverage `z.infer<>` for automatic TypeScript types
+5. **Edge deployment ready** - Minimal bundle size, Web Standards compatibility
+
+## 🚨 Common Pitfalls & Troubleshooting
+
+### Version Compatibility Issues
+
+**Problem**: TypeScript compilation errors with `@hono/zod-openapi`
+
+- ❌ **v0.17+**: Has breaking API changes, middleware patterns changed
+- ❌ **v0.8.0 and older**: Outdated, incompatible with Hono v4+
+- ✅ **v0.16.4**: Stable, well-tested, compatible with ecosystem
+
+**Solution**: Pin to specific working versions:
+
+```json
+{
+  "hono": "^4.6.3",
+  "@hono/zod-openapi": "^0.16.4",
+  "@hono/swagger-ui": "^0.4.1",
+  "@hono/node-server": "^1.19.0"
+}
+```
+
+### Middleware Pattern Changes
+
+**Problem**: `requireScopes()` middleware causing TypeScript errors
+
+- **Old pattern** (v0.17+): Middleware composition in route definition
+- **Working pattern** (v0.16.4): Manual auth checks in route handlers
+
+**Solution**: Use inline authentication checks:
+
+```typescript
+app.openapi(createRoute, async (c) => {
+  const payload = c.get("jwtPayload") as any;
+  if (!payload?.scopes?.includes("resource.write")) {
+    throw new HTTPException(403, { message: JSON.stringify(problem) });
+  }
+  // Route logic here
+});
+```
+
+### Schema Type Mismatches
+
+**Problem**: `string | undefined` vs `string | null` type conflicts
+
+- **Issue**: Zod `.optional()` creates `T | undefined`, DB returns `T | null`
+- **Solution**: Use `.nullable()` instead of `.optional()` for optional fields that can be null
+
+**Correct schema pattern**:
+
+```typescript
+const Schema = z.object({
+  title: z.string(),
+  imageUrl: z.string().url().nullable(), // Not .optional()
+});
+```
+
+### Package Version Conflicts
+
+**Problem**: `@hono/node-server` compatibility errors
+
+- **Cause**: Hono v3.x packages don't work with v4+ ecosystem
+- **Solution**: Ensure all Hono packages are v4+ compatible
+
+**Check your versions**:
+
+```bash
+npm ls | grep hono
+# Ensure all @hono/* packages are compatible with Hono v4+
+```
+
 2. **Schema-first approach** - Define Zod schemas first, then build routes around them
 3. **Use built-in middleware** - Leverage Hono's included JWT, CORS, and logging middleware
 4. **Centralize error handling** - Single error handler for consistent RFC 7807 responses

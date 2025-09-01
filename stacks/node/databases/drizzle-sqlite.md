@@ -1,6 +1,6 @@
 # Drizzle + SQLite - Node.js Database Stack
 
-**Drizzle ORM with SQLite** provides an excellent type-safe database layer for Service Standard v1 applications. This combination offers strong type safety, excellent developer experience, and simple deployment with file-based SQLite databases.
+**Drizzle ORM with SQLite** provides an excellent type-safe database layer for Service Standard v1 applications. For all modern Node.js projects, use [`@libsql/client`](https://www.npmjs.com/package/@libsql/client) as the SQLite driver. This avoids native build issues and works for both local and distributed (Turso) SQLite.
 
 ## Overview
 
@@ -31,12 +31,8 @@
 npm install drizzle-orm
 npm install -D drizzle-kit
 
-# SQLite driver
-npm install better-sqlite3
-npm install -D @types/better-sqlite3
-
-# Alternative async driver option
-# npm install @libsql/client
+# SQLite driver (recommended for all Node.js versions)
+npm install @libsql/client
 ```
 
 ### Project Structure
@@ -59,29 +55,14 @@ src/
 ### 1. Database Configuration (`src/db/index.ts`)
 
 ```typescript
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
 import * as schema from "./schema";
 
-const sqlite = new Database(process.env.DATABASE_URL || "./data/app.db");
-export const db = drizzle(sqlite, { schema });
-
-// Run migrations on startup
-export async function initializeDatabase() {
-  try {
-    migrate(db, { migrationsFolder: "./src/db/migrations" });
-    console.log("Database migrations completed");
-  } catch (error) {
-    console.error("Database migration failed:", error);
-    throw error;
-  }
-}
-
-// Graceful shutdown
-export function closeDatabase() {
-  sqlite.close();
-}
+const client = createClient({
+  url: process.env.DATABASE_URL || "file:./data/app.db",
+});
+export const db = drizzle(client, { schema });
 ```
 
 ### 2. Schema Definition (`src/db/schema.ts`)
@@ -249,9 +230,9 @@ import type { Config } from "drizzle-kit";
 export default {
   schema: "./src/db/schema.ts",
   out: "./src/db/migrations",
-  driver: "better-sqlite",
+  driver: "libsql",
   dbCredentials: {
-    url: process.env.DATABASE_URL || "./data/app.db",
+    url: process.env.DATABASE_URL || "file:./data/app.db",
   },
 } satisfies Config;
 ```
@@ -475,23 +456,21 @@ seed().catch(console.error);
 ```typescript
 // tests/setup.ts
 import { beforeAll, afterAll } from "vitest";
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
 
-let testDb: Database.Database;
+let testClient;
 
 beforeAll(async () => {
   // Use in-memory database for tests
-  testDb = new Database(":memory:");
-  const db = drizzle(testDb);
-
-  // Run migrations
-  await migrate(db, { migrationsFolder: "./src/db/migrations" });
+  testClient = createClient({ url: "file::memory:" });
+  const db = drizzle(testClient);
+  // Run migrations (if needed)
+  // await migrate(db, { migrationsFolder: "./src/db/migrations" });
 });
 
 afterAll(() => {
-  testDb.close();
+  // No explicit close needed for libsql client
 });
 ```
 
@@ -545,21 +524,7 @@ describe("OrderRepository", () => {
 
 ### Performance Optimization
 
-```typescript
-// Connection pooling for high-traffic scenarios
-import Database from "better-sqlite3";
-
-const db = new Database("./data/app.db", {
-  // Performance optimizations
-  pragma: {
-    journal_mode: "WAL", // Write-Ahead Logging for better concurrency
-    synchronous: "NORMAL", // Balance between safety and performance
-    cache_size: -64000, // Use 64MB of cache
-    temp_store: "MEMORY", // Store temporary tables in memory
-    mmap_size: 134217728, // Use 128MB of memory-mapped I/O
-  },
-});
-```
+// With @libsql/client, connection pooling and WAL are managed internally. For most use cases, no extra tuning is needed.
 
 ### Health Check Integration
 
@@ -686,35 +651,10 @@ spec:
 
 ## Alternative Drivers
 
-### LibSQL (Turso) for Distributed SQLite
+### Alternative Drivers
 
-```bash
-# For cloud/distributed SQLite
-npm install @libsql/client
-```
-
-```typescript
-import { createClient } from "@libsql/client";
-import { drizzle } from "drizzle-orm/libsql";
-
-const client = createClient({
-  url: process.env.TURSO_DATABASE_URL!,
-  authToken: process.env.TURSO_AUTH_TOKEN!,
-});
-
-export const db = drizzle(client);
-```
-
-### Bun SQLite (High Performance)
-
-```typescript
-// For Bun runtime
-import { Database } from "bun:sqlite";
-import { drizzle } from "drizzle-orm/bun-sqlite";
-
-const sqlite = new Database("./data/app.db");
-export const db = drizzle(sqlite);
-```
+- **better-sqlite3**: Still supported by Drizzle ORM, but not recommended for new projects due to native build issues and lack of edge/serverless support. Use only if you have legacy requirements.
+- **Bun SQLite**: For Bun runtime, use `bun:sqlite` and `drizzle-orm/bun-sqlite`.
 
 ## Key Benefits
 
@@ -759,7 +699,7 @@ The repository pattern and business logic remain unchanged, making migration str
 
 ## Learnings from Real-World Integration (August 2025)
 
-- **Node.js v23 compatibility**: The @libsql/client driver is more reliable than better-sqlite3 for modern Node.js versions, avoiding native compilation issues.
+- **Node.js v23+ compatibility**: `@libsql/client` is the most reliable and future-proof SQLite driver for Node.js, avoiding native compilation issues and supporting both local and distributed (Turso) SQLite.
 - **Repository pattern**: Clean separation between API (Zod) schemas and database (Drizzle) schemas is essential for maintainability and type safety.
 - **TypeScript strictness**: Hono's strict type inference can require explicit type assertions when bridging API and DB layers.
 - **Health checks**: Integrating database connectivity into readiness/liveness endpoints is critical for production reliability.

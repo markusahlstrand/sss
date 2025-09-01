@@ -151,25 +151,34 @@ examples/[service]/[language]/
 
 #### Node.js-Specific Pitfalls
 
-- **Hono Version Compatibility** - Use Hono v4+ for latest ecosystem compatibility
-  - Hono v4 required for `@hono/node-server` v1.19+, `@hono/zod-openapi` v0.17+
-  - JWT middleware is built into Hono core - no need for separate `@hono/jwt` package
-  - Update `@hono/swagger-ui` to v0.4+ for Hono v4 compatibility
+- **🚨 Hono Version Compatibility** - Critical version pinning required for @hono/zod-openapi
+  - **Use Hono v4.6.3+** for latest ecosystem compatibility
+  - **Pin @hono/zod-openapi to v0.16.4** - v0.17+ has breaking API changes that cause TypeScript compilation failures
+  - **@hono/node-server v1.19+** requires Hono v4+, avoid mixing v3.x packages with v4+
+  - **JWT middleware is built into Hono core** - no need for separate `@hono/jwt` package
+  - **@hono/swagger-ui v0.4+** required for Hono v4 compatibility
+- **⚠️ Middleware Pattern Changes** - v0.17+ broke middleware composition patterns
+  - **Avoid using `requireScopes()` middleware** - causes TypeScript errors with newer versions
+  - **Use inline authentication checks** in route handlers instead:
+    ```typescript
+    app.openapi(route, async (c) => {
+      const payload = c.get("jwtPayload") as any;
+      if (!payload?.scopes?.includes("scope.write")) {
+        throw new HTTPException(403, { message: JSON.stringify(problem) });
+      }
+    });
+    ```
 - **Package Version Alignment** - CloudEvents and OpenTelemetry package versions matter
   - Use `cloudevents@^8.0.0` for Node.js 20+ support (v6 has Node version restrictions)
   - OpenTelemetry packages should be aligned: use latest v1.x versions consistently
-- **Schema-First Development** - Leverage Zod for both validation AND OpenAPI generation
-  - Define schemas first, then build routes around them for best type inference
+- **Schema Type Mismatches** - Zod optional vs nullable field conflicts
+  - **Problem**: `.optional()` creates `T | undefined`, but databases return `T | null`
+  - **Solution**: Use `.nullable()` instead of `.optional()` for fields that can be null
   - Use `z.infer<>` for automatic TypeScript type generation from schemas
-  - Transform functions in schemas (`.transform()`) provide data conversion and validation
-- **Middleware Composition** - Hono middleware order matters for authentication flow
-  - Apply `cors()` and logging middleware globally first
-  - Apply `jwt()` authentication middleware before route-specific authorization
-  - Use `requireScopes()` middleware after JWT validation for fine-grained access control
 - **Error Handling Pattern** - Centralized error handler for consistent RFC 7807 responses
   - Handle `ZodError` specifically for validation errors with detailed field messages
   - Handle `HTTPException` for structured error responses with proper status codes
-  - Use `createMiddleware()` pattern for reusable authorization logic
+  - Manual auth validation replaces broken middleware patterns
 
 #### .NET-Specific Pitfalls
 
@@ -248,9 +257,9 @@ examples/[service]/[language]/
 ```json
 {
   "dependencies": {
-    "hono": "^4.0.0",
-    "@hono/zod-openapi": "^0.17.0",
-    "@hono/swagger-ui": "^0.4.0",
+    "hono": "^4.6.3",
+    "@hono/zod-openapi": "0.16.4",
+    "@hono/swagger-ui": "^0.4.1",
     "@hono/node-server": "^1.19.0",
     "zod": "^3.22.4",
     "jsonwebtoken": "^9.0.2",
