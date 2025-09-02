@@ -401,6 +401,7 @@ The Cloudflare Workers implementation with D1 database and R2 storage (September
 
 - **Complete edge stack**: Hono + D1 Database + R2 Storage deployed to 200+ global locations
 - **Real file uploads**: Multipart form parsing with actual R2 bucket storage for audio/media files
+- **R2 Pre-Signed URLs**: AWS S3-compatible secure, time-limited file access with 8-hour expiration
 - **Sub-millisecond performance**: Global edge deployment with automatic scaling and zero cold starts
 - **Cost efficiency**: Pay-per-request pricing with zero egress fees for file downloads
 - **Production deployment**: Live service at `https://podcast-service.sesamy-dev.workers.dev`

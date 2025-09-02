@@ -244,10 +244,19 @@ examples/[service]/[language]/
   - **Binding setup**: Configure `[[r2_buckets]]` in wrangler.toml with correct `binding` name
   - **URL generation**: Use `https://bucket-name.r2.dev/{key}` pattern (no `.name` property on R2Bucket)
   - **Multipart uploads**: Use native `c.req.formData()` and `Buffer.from(await file.arrayBuffer())`
+- **🔐 R2 Pre-Signed URLs (September 2025)** - Critical implementation for secure file access
+  - **🚨 JWT Tokens Don't Work**: R2 buckets don't understand custom JWT tokens in query parameters
+  - **✅ AWS Signature Version 4**: R2 natively supports AWS S3-compatible pre-signed URLs
+  - **Required Credentials**: Set `R2_ACCESS_KEY_ID` and `R2_SECRET_ACCESS_KEY` as Cloudflare Workers secrets
+  - **Crypto API Type Issues**: Use proper ArrayBuffer handling: `new ArrayBuffer(key.length); keyView.set(key)`
+  - **Environment Binding**: Pass R2 credentials through CloudflareEnv interface and createApp parameters
+  - **URL Format**: `https://bucket-name.r2.cloudflarestorage.com/path?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Signature=...`
+  - **Fallback Strategy**: Always implement graceful fallback to `r2://` format when signing fails
+  - **Security**: 8-hour expiration (28800 seconds), HMAC-SHA256 signing, tamper-proof URLs
 - **Worker Entry Point Pattern** - Proper environment binding interfaces
   - **Reference types**: `/// <reference types="@cloudflare/workers-types" />` at top of worker files
-  - **Environment interface**: Define complete CloudflareEnv with all bindings (D1Database, R2Bucket)
-  - **Dependency injection**: Pass bindings to app creation: `createApp(env.DB, env.BUCKET)`
+  - **Environment interface**: Define complete CloudflareEnv with all bindings (D1Database, R2Bucket, secrets)
+  - **Dependency injection**: Pass bindings to app creation: `createApp(env.DB, env.BUCKET, env.R2_ACCESS_KEY_ID, env.R2_SECRET_ACCESS_KEY)`
 - **TypeScript Configuration** - Separate configs for Worker vs Node.js code
   - **Worker config**: `tsconfig.worker.json` with `"lib": ["ES2022", "WebWorker"]`
   - **Exclusions**: Exclude Node.js specific files (`src/main.ts`, `src/telemetry.ts`, `src/scripts/`)
@@ -473,6 +482,11 @@ After generation, always:
 3. Create simple test script or examples
 4. Document any technology-specific considerations
 5. Suggest next steps for productionization (database, message broker, etc.)
+6. **📝 CAPTURE LEARNINGS**: Always update these files with new insights:
+   - **copilot-instructions.md**: Add pitfalls, solutions, and implementation patterns
+   - **readme.md**: Update with new features, requirements, or architectural insights
+   - **stacks/\*.md**: Add framework-specific learnings and best practices
+   - Create dedicated documentation files for complex features (e.g., SIGNED_URLS.md)
 
 ### Recent Successes
 
@@ -533,8 +547,9 @@ The Cloudflare Workers implementation with D1 database and R2 storage (September
 - **Full Service Standard v1 compliance** achieved on edge runtime with global distribution
 - **Complete tech stack**: Hono + Zod OpenAPI + D1 Database + R2 Storage for enterprise-grade edge applications
 - **Real file uploads**: Multipart form data parsing with actual R2 bucket storage for audio/media files
+- **R2 Pre-Signed URLs**: AWS S3-compatible signed URLs for secure, time-limited file access (8-hour expiration)
 - **Global performance**: Sub-millisecond cold starts, 200+ edge locations, zero egress fees
-- **Production deployment**: Live at `https://podcast-service.sesamy-dev.workers.dev` with working file uploads
+- **Production deployment**: Live at `https://podcast-service.sesamy-dev.workers.dev` with working file uploads and signed URLs
 - **Database migration**: Seamless D1 migration workflow for both local development and production
 - **Developer experience**: `wrangler dev` for local development, single command deployment
 - **Cost efficiency**: Pay-per-request pricing with no infrastructure management overhead
@@ -542,3 +557,4 @@ The Cloudflare Workers implementation with D1 database and R2 storage (September
 - **Repository pattern**: Clean dependency injection for D1Database and R2Bucket bindings
 - **Structured storage**: Organized file keys (`audio/{show_id}/{episode_id}/{file_id}/{filename}`)
 - **Edge-compatible telemetry**: Custom logging solution optimized for Workers runtime
+- **Secure file access**: Native R2 pre-signed URL support with proper AWS Signature Version 4 implementation

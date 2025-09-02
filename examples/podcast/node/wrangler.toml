@@ -11,6 +11,8 @@ PORT = "8787"
 # Secrets to be set with: wrangler secret put <name>
 # - JWT_SECRET
 # - DATABASE_URL (for production Turso database)
+# - R2_ACCESS_KEY_ID (for R2 pre-signed URLs)
+# - R2_SECRET_ACCESS_KEY (for R2 pre-signed URLs)
 
 # D1 Database binding
 [[d1_databases]]

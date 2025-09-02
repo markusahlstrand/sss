@@ -13,6 +13,8 @@ interface CloudflareEnv {
   BUCKET: R2Bucket;
   JWT_SECRET?: string;
   NODE_ENV?: string;
+  R2_ACCESS_KEY_ID?: string;
+  R2_SECRET_ACCESS_KEY?: string;
 }
 
 export default {
@@ -21,8 +23,13 @@ export default {
     env: CloudflareEnv,
     ctx: ExecutionContext
   ): Promise<Response> {
-    // Create app with D1 database and R2 bucket bindings
-    const app = createApp(env.DB, env.BUCKET);
+    // Create app with D1 database, R2 bucket, and R2 credentials
+    const app = createApp(
+      env.DB,
+      env.BUCKET,
+      env.R2_ACCESS_KEY_ID,
+      env.R2_SECRET_ACCESS_KEY
+    );
 
     // Set environment variables for JWT
     if (env.JWT_SECRET && !process.env.JWT_SECRET) {

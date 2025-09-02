@@ -307,6 +307,75 @@ app.get("/readyz", async (c) => {
 });
 ```
 
+## 📦 R2 Storage Integration
+
+### R2 Bucket Configuration
+
+```toml
+# wrangler.toml
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "service-assets"
+```
+
+### File Upload Implementation
+
+```typescript
+// Multipart form handling in Hono
+app.post("/upload", async (c) => {
+  const formData = await c.req.formData();
+  const file = formData.get("file") as File;
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const key = `uploads/${Date.now()}/${file.name}`;
+
+  await env.BUCKET.put(key, buffer, {
+    httpMetadata: {
+      contentType: file.type,
+    },
+  });
+
+  return c.json({ key, url: `https://bucket.r2.dev/${key}` });
+});
+```
+
+### R2 Pre-Signed URLs (September 2025)
+
+For secure, time-limited file access, implement AWS S3-compatible pre-signed URLs:
+
+```typescript
+// AWS Signature Version 4 implementation
+class R2PreSignedUrlGenerator {
+  constructor(private accessKeyId: string, private secretAccessKey: string) {}
+
+  async generatePresignedUrl(
+    bucketName: string,
+    key: string,
+    expiresIn: number = 28800 // 8 hours
+  ): Promise<string> {
+    // Implementation details in examples/podcast/node/src/audio/service.ts
+  }
+}
+
+// Usage in service
+const generator = new R2PreSignedUrlGenerator(
+  env.R2_ACCESS_KEY_ID,
+  env.R2_SECRET_ACCESS_KEY
+);
+const signedUrl = await generator.generatePresignedUrl(
+  "service-assets",
+  key,
+  28800
+);
+```
+
+#### R2 Pre-Signed URL Requirements
+
+- **Credentials**: Set `R2_ACCESS_KEY_ID` and `R2_SECRET_ACCESS_KEY` as Worker secrets
+- **URL Format**: `https://bucket.r2.cloudflarestorage.com/path?X-Amz-Signature=...`
+- **Crypto API Handling**: Use proper ArrayBuffer creation for Workers runtime
+- **Fallback Strategy**: Graceful degradation to `r2://` format if signing fails
+
 ## ⚠️ Common Pitfalls & Solutions
 
 ### Build Errors
@@ -326,6 +395,8 @@ app.get("/readyz", async (c) => {
 
 ### R2 Access Issues
 
+- **Issue**: JWT tokens don't work for direct R2 access
+- **Solution**: Use AWS Signature Version 4 pre-signed URLs instead
 - **Issue**: Files not publicly accessible
 - **Solution**: Configure R2 public access or use custom domains
 
@@ -333,6 +404,8 @@ app.get("/readyz", async (c) => {
 
 - **Issue**: Worker types not recognized
 - **Solution**: Add `/// <reference types="@cloudflare/workers-types" />` to entry files
+- **Issue**: Crypto API ArrayBuffer type conflicts
+- **Solution**: Use explicit ArrayBuffer creation: `new ArrayBuffer(key.length); keyView.set(key)`
 
 ## 🚀 Performance Optimizations
 

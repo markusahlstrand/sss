@@ -1,5 +1,6 @@
 import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
 import { HTTPException } from "hono/http-exception";
+import jwt from "jsonwebtoken";
 import { AudioUploadSchema, AudioParamsSchema } from "./schemas";
 import { AudioService } from "./service";
 import { requireScopes } from "../auth/middleware";
@@ -173,4 +174,59 @@ export function registerAudioRoutes(
 
     return c.json(audio);
   });
+
+  // TODO: Implement signed audio file serving once R2Object API is clarified
+  // For now, signed URLs will point to placeholder URLs until R2Object streaming is resolved
+  /*
+  // Serve signed audio files - no OpenAPI spec needed as this is internal
+  app.get("/audio/signed/:token", async (c) => {
+    const token = c.req.param("token");
+    
+    if (!token) {
+      throw new HTTPException(400, { message: "Missing token" });
+    }
+
+    try {
+      const secret = process.env.JWT_SECRET || 'your-secret-key';
+      const decoded = jwt.verify(decodeURIComponent(token), secret) as any;
+      
+      if (decoded.purpose !== 'audio_access') {
+        throw new HTTPException(403, { message: "Invalid token purpose" });
+      }
+
+      const r2Key = decoded.r2_key;
+      
+      // Get the file from R2 bucket
+      const r2Object = await audioService.getR2Object(r2Key);
+      
+      if (!r2Object) {
+        throw new HTTPException(404, { message: "Audio file not found" });
+      }
+
+      // Stream the file back to the client
+      const headers = new Headers();
+      headers.set('Content-Type', r2Object.httpMetadata?.contentType || 'audio/mpeg');
+      headers.set('Content-Length', r2Object.size.toString());
+      headers.set('Cache-Control', 'private, max-age=3600'); // Cache for 1 hour
+      
+      // Get the file content as ArrayBuffer and create a Response
+      const arrayBuffer = await r2Object.arrayBuffer();
+      
+      return new Response(arrayBuffer, {
+        headers,
+        status: 200
+      });
+      
+    } catch (error: any) {
+      if (error?.name === 'TokenExpiredError') {
+        throw new HTTPException(410, { message: "Signed URL has expired" });
+      }
+      if (error?.name === 'JsonWebTokenError') {
+        throw new HTTPException(403, { message: "Invalid token" });
+      }
+      console.error('Error serving signed audio:', error);
+      throw new HTTPException(500, { message: "Internal server error" });
+    }
+  });
+  */
 }

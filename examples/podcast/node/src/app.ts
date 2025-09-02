@@ -21,7 +21,12 @@ import { EpisodeService } from "./episodes/service";
 import { AudioRepository } from "./audio/repository";
 import { AudioService } from "./audio/service";
 
-export function createApp(database?: D1Database, bucket?: R2Bucket) {
+export function createApp(
+  database?: D1Database,
+  bucket?: R2Bucket,
+  r2AccessKeyId?: string,
+  r2SecretAccessKey?: string
+) {
   const app = new OpenAPIHono();
 
   // Initialize services
@@ -33,12 +38,12 @@ export function createApp(database?: D1Database, bucket?: R2Bucket) {
   const episodeRepository = new EpisodeRepository(database);
   const episodeService = new EpisodeService(episodeRepository, eventPublisher);
 
-  const audioRepository = new AudioRepository(database);
   const audioService = new AudioService(
-    audioRepository,
-    episodeRepository,
+    database,
+    bucket,
     eventPublisher,
-    bucket
+    r2AccessKeyId,
+    r2SecretAccessKey
   );
 
   // Global middleware
