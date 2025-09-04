@@ -11,6 +11,7 @@ import { registerHealthRoutes } from "./health/routes";
 import { registerShowRoutes } from "./shows/routes";
 import { registerEpisodeRoutes } from "./episodes/routes";
 import { registerAudioRoutes } from "./audio/routes";
+import { createTaskRoutes } from "./tasks/routes";
 
 // Services
 import { EventPublisher } from "./events/publisher";
@@ -20,12 +21,14 @@ import { EpisodeRepository } from "./episodes/repository";
 import { EpisodeService } from "./episodes/service";
 import { AudioRepository } from "./audio/repository";
 import { AudioService } from "./audio/service";
+import { ImageService } from "./images/service";
 
 export function createApp(
   database?: D1Database,
   bucket?: R2Bucket,
   r2AccessKeyId?: string,
-  r2SecretAccessKey?: string
+  r2SecretAccessKey?: string,
+  r2Endpoint?: string
 ) {
   const app = new OpenAPIHono();
 
@@ -43,8 +46,20 @@ export function createApp(
     bucket,
     eventPublisher,
     r2AccessKeyId,
-    r2SecretAccessKey
+    r2SecretAccessKey,
+    r2Endpoint
   );
+
+  const imageService =
+    bucket && r2AccessKeyId && r2SecretAccessKey
+      ? new ImageService(
+          bucket as any,
+          r2AccessKeyId,
+          r2SecretAccessKey,
+          r2Endpoint,
+          database
+        )
+      : undefined;
 
   // Global middleware
   app.use("*", cors());
@@ -79,6 +94,7 @@ export function createApp(
       { name: "shows", description: "Podcast shows management" },
       { name: "episodes", description: "Episode management" },
       { name: "audio", description: "Audio file management" },
+      { name: "tasks", description: "Background task management" },
     ],
   });
 
@@ -90,11 +106,13 @@ export function createApp(
 
   // All other routes require authentication
   app.use("/shows/*", authMiddleware);
+  app.use("/tasks/*", authMiddleware);
 
   // Register API routes
-  registerShowRoutes(app, showService);
-  registerEpisodeRoutes(app, episodeService);
+  registerShowRoutes(app, showService, audioService, imageService);
+  registerEpisodeRoutes(app, episodeService, audioService, imageService);
   registerAudioRoutes(app, audioService);
+  app.route("/", createTaskRoutes(database));
 
   return app;
 }

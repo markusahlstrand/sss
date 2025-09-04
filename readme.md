@@ -402,14 +402,17 @@ The Cloudflare Workers implementation with D1 database and R2 storage (September
 - **Complete edge stack**: Hono + D1 Database + R2 Storage deployed to 200+ global locations
 - **Real file uploads**: Multipart form parsing with actual R2 bucket storage for audio/media files
 - **R2 Pre-Signed URLs**: AWS S3-compatible secure, time-limited file access with 8-hour expiration
+- **Custom Domain Integration**: Branded R2 URLs using custom domains for professional file serving
 - **Sub-millisecond performance**: Global edge deployment with automatic scaling and zero cold starts
 - **Cost efficiency**: Pay-per-request pricing with zero egress fees for file downloads
 - **Production deployment**: Live service at `https://podcast-service.sesamy-dev.workers.dev`
-- **Seamless development**: `wrangler dev` local development with production parity
+- **Seamless development**: `wrangler dev --remote` local development with production parity
 - **Type-safe bindings**: Full TypeScript support for D1Database and R2Bucket integrations
 - **Structured file storage**: Organized R2 keys (`audio/{show_id}/{episode_id}/{file_id}/{filename}`)
 - **Migration workflow**: Simple local/remote database migration commands
 - **Global CDN**: R2 files served instantly from edge locations worldwide
+- **Security breakthrough**: Proper AWS Signature Version 4 implementation for R2 direct access
+- **On-demand URL signing**: Store `r2://` keys, generate fresh signed URLs for each request
 
 ---
 

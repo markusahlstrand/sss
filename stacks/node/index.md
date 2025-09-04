@@ -114,9 +114,48 @@ All router options share some common Node.js dependencies for Service Standard v
 
 ### Authentication
 
+**Basic JWT Dependencies:**
+
 ```json
 {
   "jsonwebtoken": "^9.0.2"
+}
+```
+
+**JWKS-Based Authentication (Recommended for Production):**
+
+For production services that need to validate tokens against external identity providers (Auth0, Okta, custom OAuth2 servers), implement JWKS-based authentication:
+
+```typescript
+// Using Hono's built-in JWT utilities
+import { decode, verify } from "hono/jwt";
+
+// Key features for production JWKS implementation:
+// 1. JWKS endpoint caching (5-minute TTL)
+// 2. Web Crypto API for RSA key conversion (JWK to PEM)
+// 3. Proper kid (Key ID) extraction from JWT headers
+// 4. Support for both OAuth2 'scope' and custom 'permissions' arrays
+// 5. Fallback error handling with RFC 7807 compliance
+
+const JWKS_URL = "https://your-auth-provider/.well-known/jwks.json";
+```
+
+**Key Benefits:**
+
+- ✅ **Production Security**: No hardcoded JWT secrets
+- ✅ **Token Rotation**: Automatic support for key rotation
+- ✅ **Multi-Provider**: Can validate tokens from multiple issuers
+- ✅ **Edge Compatible**: Works with Cloudflare Workers and edge runtimes
+- ✅ **Caching**: Efficient key caching reduces external requests
+
+**Implementation Pattern:**
+
+```typescript
+// Dual permission model for flexibility
+const hasReadPermission = hasPermissions(payload, ["resource:read"]);
+const hasReadScope = hasScopes(payload, ["resource.read"]);
+if (!hasReadPermission && !hasReadScope) {
+  // Return 403 Forbidden
 }
 ```
 

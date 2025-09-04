@@ -7,12 +7,14 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 NODE_ENV = "development"
 PORT = "8787"
+R2_ENDPOINT = "https://podcast-media.sesamy.dev"
 
 # Secrets to be set with: wrangler secret put <name>
 # - JWT_SECRET
 # - DATABASE_URL (for production Turso database)
 # - R2_ACCESS_KEY_ID (for R2 pre-signed URLs)
 # - R2_SECRET_ACCESS_KEY (for R2 pre-signed URLs)
+# R2_ENDPOINT is set above as environment variable for custom domain
 
 # D1 Database binding
 [[d1_databases]]
@@ -25,6 +27,11 @@ migrations_dir = "./drizzle"
 [[r2_buckets]]
 binding = "BUCKET"
 bucket_name = "podcast-service-assets"
+preview_bucket_name = "podcast-service-assets"
+
+# Cron triggers for background task processing
+[triggers]
+crons = ["*/5 * * * *"]  # Run every 5 minutes
 
 [build]
 command = "tsc -p tsconfig.worker.json"

@@ -3,7 +3,8 @@ import { HTTPException } from "hono/http-exception";
 import jwt from "jsonwebtoken";
 import { AudioUploadSchema, AudioParamsSchema } from "./schemas";
 import { AudioService } from "./service";
-import { requireScopes } from "../auth/middleware";
+import { requireScopes, hasPermissions, hasScopes } from "../auth/middleware";
+import { JWTPayload } from "../auth/types";
 import { NotFoundError } from "../common/errors";
 
 // Upload audio route
@@ -82,13 +83,15 @@ export function registerAudioRoutes(
   // Upload audio file
   app.openapi(uploadAudioRoute, async (c) => {
     // Check auth
-    const payload = c.get("jwtPayload") as any;
-    if (!payload?.scopes?.includes("podcast.write")) {
+    const payload = c.get("jwtPayload") as JWTPayload;
+    const hasWritePermission = hasPermissions(payload, ["podcast:write"]);
+    const hasWriteScope = hasScopes(payload, ["podcast.write"]);
+    if (!hasWritePermission && !hasWriteScope) {
       const problem = {
         type: "forbidden",
         title: "Forbidden",
         status: 403,
-        detail: "Required scopes: podcast.write",
+        detail: "Required permissions: podcast:write or scope: podcast.write",
         instance: c.req.path,
       };
       throw new HTTPException(403, { message: JSON.stringify(problem) });
@@ -146,13 +149,15 @@ export function registerAudioRoutes(
   // Get audio metadata
   app.openapi(getAudioRoute, async (c) => {
     // Check auth
-    const payload = c.get("jwtPayload") as any;
-    if (!payload?.scopes?.includes("podcast.read")) {
+    const payload = c.get("jwtPayload") as JWTPayload;
+    const hasReadPermission = hasPermissions(payload, ["podcast:read"]);
+    const hasReadScope = hasScopes(payload, ["podcast.read"]);
+    if (!hasReadPermission && !hasReadScope) {
       const problem = {
         type: "forbidden",
         title: "Forbidden",
         status: 403,
-        detail: "Required scopes: podcast.read",
+        detail: "Required permissions: podcast:read or scope: podcast.read",
         instance: c.req.path,
       };
       throw new HTTPException(403, { message: JSON.stringify(problem) });

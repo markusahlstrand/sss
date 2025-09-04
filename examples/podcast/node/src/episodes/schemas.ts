@@ -7,13 +7,15 @@ export const CreateEpisodeSchema = z.object({
     .string()
     .min(1, "Description is required")
     .max(2000, "Description too long"),
-  audioUrl: z.string().url().nullable(),
+  imageUrl: z.nullable(z.string().url()).optional(),
+  audioUrl: z.nullable(z.string().url()).optional(),
 });
 
 export const UpdateEpisodeSchema = z.object({
   title: z.string().min(1).max(255).optional(),
   description: z.string().min(1).max(2000).optional(),
-  audioUrl: z.string().url().nullable().optional(),
+  imageUrl: z.nullable(z.string().url()).optional(),
+  audioUrl: z.nullable(z.string().url()).optional(),
 });
 
 // Response schemas
@@ -22,6 +24,7 @@ export const EpisodeSchema = z.object({
   showId: z.string().uuid(),
   title: z.string(),
   description: z.string(),
+  imageUrl: z.string().nullable(),
   audioUrl: z.string().nullable(),
   published: z.boolean().nullable(),
   publishedAt: z.string().datetime().nullable(),
@@ -60,3 +63,17 @@ export type Episode = z.infer<typeof EpisodeSchema>;
 export type EpisodeParams = z.infer<typeof EpisodeParamsSchema>;
 export type ShowParams = z.infer<typeof ShowParamsSchema>;
 export type Pagination = z.infer<typeof PaginationSchema>;
+
+// Image upload response schema
+export const ImageUploadSchema = z.object({
+  id: z.string().uuid(),
+  showId: z.string().uuid().nullable(),
+  episodeId: z.string().uuid().nullable(),
+  fileName: z.string(),
+  fileSize: z.number(),
+  mimeType: z.string(),
+  url: z.string(),
+  uploadedAt: z.string().datetime(),
+});
+
+export type ImageUpload = z.infer<typeof ImageUploadSchema>;

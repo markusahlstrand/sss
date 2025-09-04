@@ -26,10 +26,16 @@ const signedUrl = await generator.generatePresignedUrl(
 
 ### URL Format
 
-Pre-signed URLs look like:
+Pre-signed URLs with custom domain look like:
 
 ```
-https://podcast-service-assets.r2.cloudflarestorage.com/audio/show/episode/audio-id/file.mp3?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ACCESS_KEY%2F20250901%2Fauto%2Fs3%2Faws4_request&X-Amz-Date=20250901T120000Z&X-Amz-Expires=28800&X-Amz-SignedHeaders=host&X-Amz-Signature=...
+https://podcast-media.sesamy.dev/audio/show/episode/audio-id/file.mp3?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ACCESS_KEY%2F20250901%2Fauto%2Fs3%2Faws4_request&X-Amz-Date=20250901T120000Z&X-Amz-Expires=28800&X-Amz-SignedHeaders=host&X-Amz-Signature=...
+```
+
+Or with default R2 endpoint:
+
+```
+https://podcast-service-assets.r2.cloudflarestorage.com/audio/show/episode/audio-id/file.mp3?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Signature=...
 ```
 
 ### Database Storage
@@ -52,6 +58,17 @@ To obtain these credentials:
 1. Go to Cloudflare Dashboard > R2 > Manage R2 API tokens
 2. Create new R2 token with "Read" permissions for your bucket
 3. Copy the Access Key ID and Secret Access Key
+
+### Custom Domain Setup
+
+For branded URLs, configure a custom domain:
+
+1. **Set up custom domain** in Cloudflare Dashboard > R2 > Settings > Custom domains
+2. **Configure R2_ENDPOINT** in wrangler.toml:
+   ```toml
+   R2_ENDPOINT = "https://podcast-media.sesamy.dev"
+   ```
+3. **Benefits**: Branded URLs, better caching, improved performance
 
 ## API Behavior
 

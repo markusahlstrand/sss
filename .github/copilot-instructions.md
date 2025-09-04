@@ -179,6 +179,14 @@ examples/[service]/[language]/
   - Handle `ZodError` specifically for validation errors with detailed field messages
   - Handle `HTTPException` for structured error responses with proper status codes
   - Manual auth validation replaces broken middleware patterns
+- **🔐 JWKS Authentication Integration** - Production-ready JWT validation using external JWKS endpoints
+  - **Use Hono's built-in JWT utilities**: `import { decode, verify } from "hono/jwt"` for token processing
+  - **JWKS key caching required**: Implement 5-minute TTL cache to avoid fetching keys on every request
+  - **Web Crypto API for RSA keys**: Use `crypto.subtle.importKey()` and `crypto.subtle.exportKey()` for JWK to PEM conversion
+  - **Proper error handling**: Distinguish between JWKS fetch failures, key validation errors, and token verification failures
+  - **Dual permission model**: Support both OAuth2 `scope` (space-separated) and `permissions` (array) for flexibility
+  - **Helper functions pattern**: Create `hasPermissions()` and `hasScopes()` for inline route-level checks
+  - **Production security**: Eliminates hardcoded secrets, enables proper token rotation and key management
 
 #### .NET-Specific Pitfalls
 
@@ -253,6 +261,10 @@ examples/[service]/[language]/
   - **URL Format**: `https://bucket-name.r2.cloudflarestorage.com/path?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Signature=...`
   - **Fallback Strategy**: Always implement graceful fallback to `r2://` format when signing fails
   - **Security**: 8-hour expiration (28800 seconds), HMAC-SHA256 signing, tamper-proof URLs
+  - **🎯 Custom Domain Support**: R2_ENDPOINT environment variable enables branded URLs (e.g., `https://media.domain.com`)
+  - **⚠️ Parameter Passing**: Ensure all constructor parameters are passed through the entire chain (worker.ts → app.ts → service)
+  - **🐛 Debugging Strategy**: Add console.log statements to verify environment variables are passed correctly
+  - **📦 Storage Pattern**: Store `r2://` keys in database, generate signed URLs on-demand for API responses
 - **Worker Entry Point Pattern** - Proper environment binding interfaces
   - **Reference types**: `/// <reference types="@cloudflare/workers-types" />` at top of worker files
   - **Environment interface**: Define complete CloudflareEnv with all bindings (D1Database, R2Bucket, secrets)
@@ -548,13 +560,74 @@ The Cloudflare Workers implementation with D1 database and R2 storage (September
 - **Complete tech stack**: Hono + Zod OpenAPI + D1 Database + R2 Storage for enterprise-grade edge applications
 - **Real file uploads**: Multipart form data parsing with actual R2 bucket storage for audio/media files
 - **R2 Pre-Signed URLs**: AWS S3-compatible signed URLs for secure, time-limited file access (8-hour expiration)
+- **Custom Domain Integration**: Branded R2 URLs using custom domains (e.g., `https://podcast-media.sesamy.dev`)
 - **Global performance**: Sub-millisecond cold starts, 200+ edge locations, zero egress fees
 - **Production deployment**: Live at `https://podcast-service.sesamy-dev.workers.dev` with working file uploads and signed URLs
 - **Database migration**: Seamless D1 migration workflow for both local development and production
-- **Developer experience**: `wrangler dev` for local development, single command deployment
+- **Developer experience**: `wrangler dev --remote` for local development with production bindings
 - **Cost efficiency**: Pay-per-request pricing with no infrastructure management overhead
 - **Type safety**: Full TypeScript support with proper Cloudflare Workers type bindings
 - **Repository pattern**: Clean dependency injection for D1Database and R2Bucket bindings
 - **Structured storage**: Organized file keys (`audio/{show_id}/{episode_id}/{file_id}/{filename}`)
 - **Edge-compatible telemetry**: Custom logging solution optimized for Workers runtime
 - **Secure file access**: Native R2 pre-signed URL support with proper AWS Signature Version 4 implementation
+- **On-demand signing**: Store `r2://` keys in database, generate fresh signed URLs for each API request
+
+#### JWKS-Based Authentication Implementation (September 2025) ✅
+
+Successfully migrated from static JWT secret validation to JWKS-based authentication for production security:
+
+- **🔐 JWKS Integration**: Implemented `https://token.sesamy.dev/.well-known/jwks.json` endpoint validation using Hono's `decode` and `verify` functions
+- **Key Features**:
+  - JWKS key caching (5-minute TTL) to avoid fetching keys on every request
+  - Support for RSA keys with automatic JWK to PEM conversion using Web Crypto API
+  - Proper `kid` (Key ID) extraction from JWT headers for key selection
+  - Fallback error handling with RFC 7807 compliant error responses
+- **Dual Permission Model**: Enhanced authorization to support both OAuth2 scopes and permissions array
+  - `scope`: OAuth2 standard space-separated string (e.g., "openid profile email offline_access")
+  - `permissions`: Array format for fine-grained access (e.g., ["podcast:read", "podcast:write"])
+  - Backward compatibility with legacy `scopes` array format
+- **Implementation Pattern**:
+  ```typescript
+  // Check both permissions and scopes with fallback
+  const hasReadPermission = hasPermissions(payload, ["podcast:read"]);
+  const hasReadScope = hasScopes(payload, ["podcast.read"]);
+  if (!hasReadPermission && !hasReadScope) {
+    /* 403 Forbidden */
+  }
+  ```
+- **Production Security**: Eliminates hardcoded JWT secrets, enables proper token rotation and revocation
+- **Web Crypto API**: Efficient RSA key import/export for Cloudflare Workers runtime compatibility
+- **Error Debugging**: Enhanced logging for JWKS fetch failures and key validation issues
+
+#### Image Upload 500 Error Resolution (September 2025) ✅
+
+Identified and resolved image upload failures returning generic 500 errors:
+
+- **🐛 Root Cause**: Unhandled errors in R2 bucket operations and database transactions falling through to generic error handler
+- **Key Issues Fixed**:
+  - Missing R2 bucket availability checks before upload attempts
+  - Insufficient error handling in `ImageService.uploadShowImage()` method
+  - Generic error responses masking specific failure reasons
+- **Enhanced Error Handling**:
+  - Added try-catch blocks around R2 operations with specific error messages
+  - Implemented bucket validation: `if (!this.bucket) throw new Error("R2 bucket is not configured")`
+  - Detailed error categorization for storage, database, and validation failures
+  - Proper RFC 7807 error responses for each failure type
+- **Debugging Strategy**:
+  - Created comprehensive test script (`test-image-upload.sh`) for reproducing issues
+  - Added detailed console logging for each upload step
+  - Differentiated between local vs production environment failures
+- **Production Fixes Applied**:
+  ```typescript
+  // Before: throw error; (generic 500)
+  // After: Specific error handling with proper HTTP status codes
+  if (error.message?.includes("R2 bucket")) {
+    return {
+      type: "internal_error",
+      detail: "Image storage service temporarily unavailable",
+    };
+  }
+  ```
+- **Testing Infrastructure**: Automated test with token generation, show creation, image upload, and cleanup
+- **Works locally ✅, production deployment needed**: Fixed implementation ready for deployment

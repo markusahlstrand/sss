@@ -7,17 +7,24 @@ import { EpisodeRepository } from "../episodes/repository";
 import { NotFoundError } from "../common/errors";
 
 // AWS Signature Version 4 implementation for R2 pre-signed URLs
-class R2PreSignedUrlGenerator {
+export class R2PreSignedUrlGenerator {
   private accessKeyId: string;
   private secretAccessKey: string;
   private region: string;
   private service: string;
+  private endpoint?: string;
 
-  constructor(accessKeyId: string, secretAccessKey: string, region = "auto") {
+  constructor(
+    accessKeyId: string,
+    secretAccessKey: string,
+    endpoint?: string,
+    region = "auto"
+  ) {
     this.accessKeyId = accessKeyId;
     this.secretAccessKey = secretAccessKey;
     this.region = region;
     this.service = "s3";
+    this.endpoint = endpoint;
   }
 
   async generatePresignedUrl(
@@ -29,7 +36,17 @@ class R2PreSignedUrlGenerator {
     const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
     const dateStamp = amzDate.substring(0, 8);
 
-    const host = `${bucketName}.r2.cloudflarestorage.com`;
+    // Use custom domain or R2 endpoint
+    let host: string;
+    if (this.endpoint) {
+      // Remove https:// if present and use the provided endpoint/custom domain
+      host = this.endpoint.replace(/^https?:\/\//, "");
+      console.log(`Using custom endpoint: ${this.endpoint} -> host: ${host}`);
+    } else {
+      host = `${bucketName}.r2.cloudflarestorage.com`;
+      console.log(`Using default R2 endpoint: ${host}`);
+    }
+
     const method = "GET";
 
     // Create canonical request
@@ -158,7 +175,8 @@ export class AudioService {
     bucket?: R2Bucket,
     eventPublisher?: EventPublisher,
     r2AccessKeyId?: string,
-    r2SecretAccessKey?: string
+    r2SecretAccessKey?: string,
+    r2Endpoint?: string
   ) {
     this.audioRepo = new AudioRepository(database);
     this.episodeRepo = new EpisodeRepository(database);
@@ -167,9 +185,17 @@ export class AudioService {
 
     // Initialize pre-signed URL generator if credentials are available
     if (r2AccessKeyId && r2SecretAccessKey) {
+      console.log(
+        `Initializing R2PreSignedUrlGenerator with endpoint: ${r2Endpoint}`
+      );
       this.presignedUrlGenerator = new R2PreSignedUrlGenerator(
         r2AccessKeyId,
-        r2SecretAccessKey
+        r2SecretAccessKey,
+        r2Endpoint
+      );
+    } else {
+      console.log(
+        `R2 credentials not available - r2AccessKeyId: ${!!r2AccessKeyId}, r2SecretAccessKey: ${!!r2SecretAccessKey}`
       );
     }
   }
@@ -240,25 +266,25 @@ export class AudioService {
       fileName: file.fileName,
       fileSize: file.fileSize,
       mimeType: file.mimeType,
-      url, // Store R2 key for regenerating signed URLs
+      url, // Store R2 key (r2://) for regenerating signed URLs
     });
 
-    // Update episode with signed URL
+    // Update episode with R2 key (NOT signed URL)
     await this.episodeRepo.update(showId, episodeId, {
-      audioUrl: signedUrl, // Use signed URL for episode
+      audioUrl: url, // Store R2 key, sign on-demand when reading
     });
 
-    // Publish event with signed URL
+    // Publish event with R2 key (generate signed URL for event payload)
     await this.eventPublisher.publish(
       "audio.uploaded",
       {
         ...audioUpload,
-        url: signedUrl, // Include signed URL in event
+        url: signedUrl, // Include signed URL in event for immediate use
       },
       audioUpload.id
     );
 
-    // Return upload info with signed URL
+    // Return upload info with signed URL for immediate use
     return {
       ...audioUpload,
       url: signedUrl,
@@ -304,6 +330,24 @@ export class AudioService {
       return object;
     } catch (error) {
       console.error("Error getting R2 object:", error);
+      return null;
+    }
+  }
+
+  // Utility method to generate signed URL from R2 key
+  async generateSignedUrlFromKey(r2Key: string): Promise<string | null> {
+    if (!this.presignedUrlGenerator) {
+      return null;
+    }
+
+    try {
+      return await this.presignedUrlGenerator.generatePresignedUrl(
+        "podcast-service-assets",
+        r2Key,
+        28800 // 8 hours
+      );
+    } catch (error) {
+      console.warn("Failed to generate pre-signed URL for key:", r2Key, error);
       return null;
     }
   }
