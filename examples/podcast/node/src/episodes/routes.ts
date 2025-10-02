@@ -492,7 +492,8 @@ export function registerEpisodeRoutes(
         type: "forbidden",
         title: "Forbidden",
         status: 403,
-        detail: "Required permissions: podcast:publish or scope: podcast.publish",
+        detail:
+          "Required permissions: podcast:publish or scope: podcast.publish",
         instance: c.req.path,
       };
       throw new HTTPException(403, { message: JSON.stringify(problem) });

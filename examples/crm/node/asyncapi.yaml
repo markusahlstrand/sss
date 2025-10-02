@@ -1,0 +1,301 @@
+asyncapi: 2.6.0
+info:
+  title: CRM Service Events
+  version: 1.0.0
+  description: CloudEvents published by the CRM Service for multi-vendor customer relationship management
+  contact:
+    name: CRM Team
+    email: crm-team@example.com
+defaultContentType: application/json
+servers:
+  production:
+    url: https://events.example.com
+    protocol: https
+    description: Production event broker
+  development:
+    url: http://localhost:8080
+    protocol: http
+    description: Development event broker
+channels:
+  vendor.created:
+    description: Published when a new vendor is created
+    publish:
+      message:
+        $ref: "#/components/messages/VendorCreated"
+  vendor.updated:
+    description: Published when a vendor is updated
+    publish:
+      message:
+        $ref: "#/components/messages/VendorUpdated"
+  product.created:
+    description: Published when a new product is created
+    publish:
+      message:
+        $ref: "#/components/messages/ProductCreated"
+  product.updated:
+    description: Published when a product is updated
+    publish:
+      message:
+        $ref: "#/components/messages/ProductUpdated"
+  bundleItem.added:
+    description: Published when a child product is added to a bundle
+    publish:
+      message:
+        $ref: "#/components/messages/BundleItemAdded"
+  contract.created:
+    description: Published when a new contract is created
+    publish:
+      message:
+        $ref: "#/components/messages/ContractCreated"
+  purchaseOption.created:
+    description: Published when a new purchase option is created
+    publish:
+      message:
+        $ref: "#/components/messages/PurchaseOptionCreated"
+  user.created:
+    description: Published when a new user is created
+    publish:
+      message:
+        $ref: "#/components/messages/UserCreated"
+  entitlement.granted:
+    description: Published when an entitlement is granted to a user
+    publish:
+      message:
+        $ref: "#/components/messages/EntitlementGranted"
+  entitlement.revoked:
+    description: Published when an entitlement is revoked from a user
+    publish:
+      message:
+        $ref: "#/components/messages/EntitlementRevoked"
+components:
+  messages:
+    VendorCreated:
+      name: VendorCreated
+      title: Vendor Created
+      summary: A new vendor has been created
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/VendorCreatedPayload"
+    VendorUpdated:
+      name: VendorUpdated
+      title: Vendor Updated
+      summary: A vendor has been updated
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/VendorUpdatedPayload"
+    ProductCreated:
+      name: ProductCreated
+      title: Product Created
+      summary: A new product has been created
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/ProductCreatedPayload"
+    ProductUpdated:
+      name: ProductUpdated
+      title: Product Updated
+      summary: A product has been updated
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/ProductUpdatedPayload"
+    BundleItemAdded:
+      name: BundleItemAdded
+      title: Bundle Item Added
+      summary: A child product has been added to a bundle
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/BundleItemAddedPayload"
+    ContractCreated:
+      name: ContractCreated
+      title: Contract Created
+      summary: A new contract has been created
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/ContractCreatedPayload"
+    PurchaseOptionCreated:
+      name: PurchaseOptionCreated
+      title: Purchase Option Created
+      summary: A new purchase option has been created
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/PurchaseOptionCreatedPayload"
+    UserCreated:
+      name: UserCreated
+      title: User Created
+      summary: A new user has been created
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/UserCreatedPayload"
+    EntitlementGranted:
+      name: EntitlementGranted
+      title: Entitlement Granted
+      summary: An entitlement has been granted to a user
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/EntitlementGrantedPayload"
+    EntitlementRevoked:
+      name: EntitlementRevoked
+      title: Entitlement Revoked
+      summary: An entitlement has been revoked from a user
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/EntitlementRevokedPayload"
+  schemas:
+    VendorCreatedPayload:
+      type: object
+      required:
+        - vendorId
+        - name
+      properties:
+        vendorId:
+          type: string
+          description: Unique identifier for the vendor
+        name:
+          type: string
+          description: Vendor display name
+    VendorUpdatedPayload:
+      type: object
+      required:
+        - vendorId
+        - name
+      properties:
+        vendorId:
+          type: string
+          description: Unique identifier for the vendor
+        name:
+          type: string
+          description: Vendor display name
+    ProductCreatedPayload:
+      type: object
+      required:
+        - vendorId
+        - productId
+        - type
+      properties:
+        vendorId:
+          type: string
+          description: Vendor identifier
+        productId:
+          type: string
+          description: Product identifier
+        type:
+          type: string
+          enum: [pass, article, podcast, bundle]
+          description: Product type
+    ProductUpdatedPayload:
+      type: object
+      required:
+        - vendorId
+        - productId
+        - type
+      properties:
+        vendorId:
+          type: string
+          description: Vendor identifier
+        productId:
+          type: string
+          description: Product identifier
+        type:
+          type: string
+          enum: [pass, article, podcast, bundle]
+          description: Product type
+    BundleItemAddedPayload:
+      type: object
+      required:
+        - vendorId
+        - productId
+        - childProductId
+      properties:
+        vendorId:
+          type: string
+          description: Vendor identifier
+        productId:
+          type: string
+          description: Bundle product identifier
+        childProductId:
+          type: string
+          description: Child product identifier
+    ContractCreatedPayload:
+      type: object
+      required:
+        - vendorId
+        - contractId
+        - productId
+      properties:
+        vendorId:
+          type: string
+          description: Vendor identifier
+        contractId:
+          type: string
+          description: Contract identifier
+        productId:
+          type: string
+          description: Product identifier
+    PurchaseOptionCreatedPayload:
+      type: object
+      required:
+        - vendorId
+        - purchaseOptionId
+        - productId
+      properties:
+        vendorId:
+          type: string
+          description: Vendor identifier
+        purchaseOptionId:
+          type: string
+          description: Purchase option identifier
+        productId:
+          type: string
+          description: Product identifier
+    UserCreatedPayload:
+      type: object
+      required:
+        - vendorId
+        - userId
+        - email
+      properties:
+        vendorId:
+          type: string
+          description: Vendor identifier
+        userId:
+          type: string
+          description: User identifier
+        email:
+          type: string
+          format: email
+          description: User email address
+    EntitlementGrantedPayload:
+      type: object
+      required:
+        - vendorId
+        - entitlementId
+        - userId
+        - productId
+        - purchaseOptionId
+      properties:
+        vendorId:
+          type: string
+          description: Vendor identifier
+        entitlementId:
+          type: string
+          description: Entitlement identifier
+        userId:
+          type: string
+          description: User identifier
+        productId:
+          type: string
+          description: Product identifier
+        purchaseOptionId:
+          type: string
+          description: Purchase option identifier
+    EntitlementRevokedPayload:
+      type: object
+      required:
+        - vendorId
+        - entitlementId
+      properties:
+        vendorId:
+          type: string
+          description: Vendor identifier
+        entitlementId:
+          type: string
+          description: Entitlement identifier

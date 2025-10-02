@@ -1,0 +1,332 @@
+openapi: 3.0.0
+info:
+  title: CRM Service API
+  description: Service Standard v1 compliant CRM API for multi-vendor customer relationship management
+  version: 1.0.0
+  contact:
+    name: CRM Team
+    email: crm-team@example.com
+servers:
+  - url: https://crm-service.example.com
+    description: Production server
+  - url: http://localhost:3000
+    description: Development server
+paths:
+  /:
+    get:
+      summary: Service information
+      description: Get service name and version
+      responses:
+        "200":
+          description: Service information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: crm-service
+                  version:
+                    type: string
+                    example: 1.0.0
+  /openapi.json:
+    get:
+      summary: OpenAPI specification
+      description: Get the OpenAPI JSON specification for this service
+      responses:
+        "200":
+          description: OpenAPI JSON specification
+          content:
+            application/json:
+              schema:
+                type: object
+  /healthz:
+    get:
+      summary: Liveness check
+      description: Check if the service is alive
+      responses:
+        "200":
+          description: Service is alive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  timestamp:
+                    type: string
+                    format: date-time
+  /readyz:
+    get:
+      summary: Readiness check
+      description: Check if the service is ready to accept traffic
+      responses:
+        "200":
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ready
+                  timestamp:
+                    type: string
+                    format: date-time
+                  database:
+                    type: string
+                    example: connected
+        "503":
+          description: Service is not ready
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: not ready
+                  timestamp:
+                    type: string
+                    format: date-time
+                  database:
+                    type: string
+                    example: error
+  /vendors:
+    post:
+      summary: Create vendor
+      description: Create a new vendor in the CRM system
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateVendor"
+      responses:
+        "201":
+          description: Vendor created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vendor"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+    get:
+      summary: List vendors
+      description: List all vendors with pagination
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        "200":
+          description: List of vendors
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Vendor"
+                  total:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /vendors/{vendorId}:
+    get:
+      summary: Get vendor
+      description: Retrieve a specific vendor by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: vendorId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Vendor found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vendor"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    Limit:
+      name: limit
+      in: query
+      description: Number of items to return
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    Offset:
+      name: offset
+      in: query
+      description: Number of items to skip
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+  schemas:
+    Vendor:
+      type: object
+      required:
+        - vendorId
+        - name
+        - createdAt
+        - updatedAt
+      properties:
+        vendorId:
+          type: string
+          description: Unique identifier for the vendor
+        name:
+          type: string
+          description: Vendor display name
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Additional vendor metadata
+        createdAt:
+          type: string
+          format: date-time
+          description: When the vendor was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: When the vendor was last updated
+    CreateVendor:
+      type: object
+      required:
+        - vendorId
+        - name
+      properties:
+        vendorId:
+          type: string
+          description: Unique identifier for the vendor
+        name:
+          type: string
+          description: Vendor display name
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Additional vendor metadata
+    ProblemDetails:
+      type: object
+      required:
+        - type
+        - title
+        - status
+        - detail
+        - instance
+      properties:
+        type:
+          type: string
+          description: Problem type identifier
+        title:
+          type: string
+          description: Human-readable problem title
+        status:
+          type: integer
+          description: HTTP status code
+        detail:
+          type: string
+          description: Human-readable problem detail
+        instance:
+          type: string
+          description: URI reference that identifies the specific occurrence
+  responses:
+    ValidationError:
+      description: Validation error
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+          example:
+            type: validation_error
+            title: Validation Error
+            status: 400
+            detail: "vendorId should not be empty, name must be at least 1 character"
+            instance: /vendors
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+          example:
+            type: unauthorized
+            title: Unauthorized
+            status: 401
+            detail: Authorization header with Bearer token required
+            instance: /vendors
+    Forbidden:
+      description: Forbidden
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+          example:
+            type: forbidden
+            title: Forbidden
+            status: 403
+            detail: "Insufficient permissions. Required: vendors.write"
+            instance: /vendors
+    NotFound:
+      description: Not found
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+          example:
+            type: not_found
+            title: Not Found
+            status: 404
+            detail: Vendor not found
+            instance: /vendors/vendor123
+    Conflict:
+      description: Conflict
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+          example:
+            type: conflict
+            title: Conflict
+            status: 409
+            detail: Vendor with this ID already exists
+            instance: /vendors

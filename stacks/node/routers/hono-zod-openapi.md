@@ -37,7 +37,8 @@
 
 ```json
 {
-  "zod": "^3.22.4"
+  "zod": "^3.22.4",
+  "nanoid": "^5.0.0"
 }
 ```
 
@@ -96,69 +97,75 @@ import {
   PaginationSchema,
 } from "../../schemas/orders";
 
-// Get orders route
-export const getOrdersRoute = createRoute({
-  method: "get",
-  path: "/orders",
-  tags: ["orders"],
-  summary: "Get all orders",
-  request: {
-    query: PaginationSchema,
-  },
-  responses: {
-    200: {
-      content: {
-        "application/json": {
-          schema: z.array(OrderSchema),
-        },
-      },
-      description: "List of orders",
-    },
-  },
-  security: [{ Bearer: [] }],
-});
-
-// Create order route
-export const createOrderRoute = createRoute({
-  method: "post",
-  path: "/orders",
-  tags: ["orders"],
-  summary: "Create a new order",
-  request: {
-    body: {
-      content: {
-        "application/json": {
-          schema: CreateOrderSchema,
-        },
-      },
-    },
-  },
-  responses: {
-    201: {
-      content: {
-        "application/json": {
-          schema: OrderSchema,
-        },
-      },
-      description: "Created order",
-    },
-  },
-  security: [{ Bearer: [] }],
-});
-
-// Register routes with handlers
+// Register routes with inline createRoute calls
 export function registerOrderRoutes(app: OpenAPIHono) {
-  app.openapi(getOrdersRoute, async (c) => {
-    const { limit = 10, offset = 0 } = c.req.valid("query");
-    const orders = await c.var.ordersService.findAll({ limit, offset });
-    return c.json(orders);
-  });
+  // --------------------------------
+  // GET /orders
+  // --------------------------------
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/orders",
+      tags: ["orders"],
+      summary: "Get all orders",
+      request: {
+        query: PaginationSchema,
+      },
+      responses: {
+        200: {
+          content: {
+            "application/json": {
+              schema: z.array(OrderSchema),
+            },
+          },
+          description: "List of orders",
+        },
+      },
+      security: [{ Bearer: [] }],
+    }),
+    async (c) => {
+      const { limit = 10, offset = 0 } = c.req.valid("query");
+      const orders = await c.var.ordersService.findAll({ limit, offset });
+      return c.json(orders);
+    }
+  );
 
-  app.openapi(createOrderRoute, async (c) => {
-    const orderData = c.req.valid("json");
-    const order = await c.var.ordersService.create(orderData);
-    return c.json(order, 201);
-  });
+  // --------------------------------
+  // POST /orders
+  // --------------------------------
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/orders",
+      tags: ["orders"],
+      summary: "Create a new order",
+      request: {
+        body: {
+          content: {
+            "application/json": {
+              schema: CreateOrderSchema,
+            },
+          },
+        },
+      },
+      responses: {
+        201: {
+          content: {
+            "application/json": {
+              schema: OrderSchema,
+            },
+          },
+          description: "Created order",
+        },
+      },
+      security: [{ Bearer: [] }],
+    }),
+    async (c) => {
+      const orderData = c.req.valid("json");
+      const order = await c.var.ordersService.create(orderData);
+      return c.json(order, 201);
+    }
+  );
 }
 ```
 
@@ -167,22 +174,25 @@ export function registerOrderRoutes(app: OpenAPIHono) {
 ```typescript
 // schemas/orders/index.ts
 import { z } from "zod";
+import { nanoid } from "nanoid";
 
+// Use nanoid for generating unique IDs instead of UUID
+// nanoid generates URL-safe, unique string IDs that are shorter than UUIDs
 export const OrderItemSchema = z.object({
-  productId: z.string().uuid(),
+  productId: z.string().min(1), // nanoid string (e.g., "V1StGXR8_Z5jdHi6B-myT")
   quantity: z.number().int().min(1),
   price: z.number().min(0.01),
 });
 
 export const CreateOrderSchema = z.object({
-  customerId: z.string().uuid(),
+  customerId: z.string().min(1), // nanoid string
   items: z.array(OrderItemSchema).min(1),
   totalAmount: z.number().min(0.01),
 });
 
 export const OrderSchema = z.object({
-  id: z.string().uuid(),
-  customerId: z.string().uuid(),
+  id: z.string().min(1), // nanoid string
+  customerId: z.string().min(1), // nanoid string
   items: z.array(OrderItemSchema),
   totalAmount: z.number(),
   status: z.enum(["pending", "confirmed", "shipped", "delivered"]),
@@ -433,48 +443,56 @@ const healthResponse = z.object({
   status: z.string(),
 });
 
-const livenessRoute = createRoute({
-  method: "get",
-  path: "/healthz",
-  tags: ["health"],
-  summary: "Liveness probe",
-  responses: {
-    200: {
-      content: {
-        "application/json": {
-          schema: healthResponse,
-        },
-      },
-      description: "Service is alive",
-    },
-  },
-});
-
-const readinessRoute = createRoute({
-  method: "get",
-  path: "/readyz",
-  tags: ["health"],
-  summary: "Readiness probe",
-  responses: {
-    200: {
-      content: {
-        "application/json": {
-          schema: healthResponse,
-        },
-      },
-      description: "Service is ready",
-    },
-  },
-});
-
 export function registerHealthRoutes(app: OpenAPIHono) {
-  app.openapi(livenessRoute, (c) => {
-    return c.json({ status: "ok" });
-  });
+  // --------------------------------
+  // GET /healthz
+  // --------------------------------
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/healthz",
+      tags: ["health"],
+      summary: "Liveness probe",
+      responses: {
+        200: {
+          content: {
+            "application/json": {
+              schema: healthResponse,
+            },
+          },
+          description: "Service is alive",
+        },
+      },
+    }),
+    (c) => {
+      return c.json({ status: "ok" });
+    }
+  );
 
-  app.openapi(readinessRoute, (c) => {
-    return c.json({ status: "ready" });
-  });
+  // --------------------------------
+  // GET /readyz
+  // --------------------------------
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/readyz",
+      tags: ["health"],
+      summary: "Readiness probe",
+      responses: {
+        200: {
+          content: {
+            "application/json": {
+              schema: healthResponse,
+            },
+          },
+          description: "Service is ready",
+        },
+      },
+    }),
+    (c) => {
+      return c.json({ status: "ready" });
+    }
+  );
 }
 ```
 
@@ -539,8 +557,9 @@ The Hono + Zod OpenAPI router has been successfully implemented and deployed wit
 
 ```typescript
 // Zod schemas provide both validation AND OpenAPI generation
+// Use nanoid for unique IDs instead of UUIDs
 const CreateOrderSchema = z.object({
-  customerId: z.string().uuid(),
+  customerId: z.string().min(1), // nanoid string
   items: z.array(OrderItemSchema).min(1),
   totalAmount: z.number().min(0.01),
 });
@@ -548,17 +567,26 @@ const CreateOrderSchema = z.object({
 // Automatic type inference
 export type CreateOrder = z.infer<typeof CreateOrderSchema>;
 
-// Route definition with schema
-const createOrderRoute = createRoute({
-  method: "post",
-  path: "/orders",
-  request: {
-    body: { content: { "application/json": { schema: CreateOrderSchema } } },
-  },
-  responses: {
-    201: { content: { "application/json": { schema: OrderSchema } } },
-  },
-});
+// --------------------------------
+// POST /orders
+// --------------------------------
+app.openapi(
+  createRoute({
+    method: "post",
+    path: "/orders",
+    request: {
+      body: { content: { "application/json": { schema: CreateOrderSchema } } },
+    },
+    responses: {
+      201: { content: { "application/json": { schema: OrderSchema } } },
+    },
+  }),
+  async (c) => {
+    const orderData = c.req.valid("json");
+    const order = await c.var.ordersService.create(orderData);
+    return c.json(order, 201);
+  }
+);
 ```
 
 **Authentication Pattern:**
@@ -725,6 +753,7 @@ app.openapi(createRoute, async (c) => {
 
 ```typescript
 const Schema = z.object({
+  id: z.string().min(1), // Use nanoid for IDs
   title: z.string(),
   imageUrl: z.string().url().nullable(), // Not .optional()
 });

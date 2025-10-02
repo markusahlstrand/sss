@@ -1,0 +1,31 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "WebWorker"],
+    "module": "ES2022",
+    "target": "ES2022",
+    "moduleResolution": "bundler",
+    "noEmit": false,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "types": ["@cloudflare/workers-types"]
+  },
+  "include": [
+    "src/worker.ts",
+    "src/app.ts",
+    "src/routes/**/*",
+    "src/schemas/**/*",
+    "src/services/**/*",
+    "src/middleware/**/*",
+    "src/lib/**/*",
+    "src/repositories/**/*"
+  ],
+  "exclude": [
+    "src/main.ts",
+    "src/telemetry.ts",
+    "src/scripts/**/*",
+    "node_modules",
+    "test",
+    "**/*.test.ts"
+  ]
+}
